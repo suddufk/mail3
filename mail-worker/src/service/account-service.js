@@ -103,6 +103,16 @@ const accountService = {
 		return orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
 	},
 
+	selectCatchAllByDomain(c, domain) {
+		return orm(c).select().from(account).where(
+			and(
+				eq(account.allReceive, accountConst.allReceive.OPEN),
+				eq(account.isDel, isDel.NORMAL),
+				sql`${account.email} LIKE ${'%@' + domain}`
+			)
+		).get();
+	},
+
 	list(c, params, userId) {
 
 		let { accountId, size, lastSort } = params;
