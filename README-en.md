@@ -63,6 +63,8 @@ With only one domain, you can create multiple different email addresses, similar
 
 - **🤖 CAPTCHA**: Integrated with Turnstile CAPTCHA to prevent automated registration.
 
+- **🔒 Security**: Rate limiting on login/register, CORS restriction, JWT expiration with auto-refresh, PBKDF2 password hashing (100k iterations), HTML sanitization on incoming emails.
+
 - **📜 More Features**: Under development...
 
 ## Tech Stack
@@ -130,6 +132,25 @@ cloud-mail
 └── └── env.release				# Environment configuration
 
 ```
+
+## Security
+
+Cloud Mail includes the following security features:
+
+- **Rate Limiting**: Login (5 attempts/5min per IP, 10/hour per email), registration (3/hour per IP). Prevents brute force and mass registration.
+- **CORS**: Configurable `allowed_origins` env var restricts cross-origin requests. Backward compatible — allows all if not set.
+- **JWT Expiration**: Tokens expire after 2 hours. Auto-refresh via `X-New-Token` response header when less than 30 minutes remaining.
+- **PBKDF2 Password Hashing**: 100,000 iterations. Legacy SHA-256 hashes are auto-upgraded on login. Zero downtime migration.
+- **HTML Sanitization**: Incoming emails are sanitized — removes script, iframe, object, event handlers, and javascript: URLs. Content capped at 500KB.
+- **Init Endpoint Protection**: Supports separate `init_secret` env var, one-time use with KV flag, audit logging.
+- **Migration Tracking**: `_migrations` table tracks applied database versions. Idempotent execution, error reporting.
+
+## Deployment Notes
+
+- **R2 Storage**: When using R2 for attachments, the serving path correctly reads from R2 (not KV). S3-compatible storage is also supported.
+- **Custom Domain**: Create a proxied A record (`192.0.2.1`) pointing to your subdomain. Cloudflare's proxy routes traffic to the Worker.
+- **Email Routing**: Enable Cloudflare Email Routing with a catch-all rule pointing to the Worker for email reception.
+- **Frontend Build**: Set `VITE_OUT_DIR=../mail-worker/dist` in your `.env.release` file so the frontend builds into the Worker's asset directory.
 
 ## Support
 
