@@ -1,5 +1,8 @@
 import emailService from './email-service';
-import { emailConst } from '../const/entity-const';
+import accountService from './account-service';
+import settingService from './setting-service';
+import { emailConst, isDel, settingConst } from '../const/entity-const';
+import emailUtils from '../utils/email-utils';
 import BizError from '../error/biz-error';
 
 const resendService = {
@@ -36,6 +39,34 @@ const resendService = {
 		if (body.type === 'email.failed') {
 			params.status = emailConst.status.FAILED
 			params.message = body.data.failed.reason
+		}
+
+		if (body.type === 'email.received') {
+			const data = body.data;
+			const toAddress = data.to[0];
+			const account = await accountService.selectByEmailIncludeDel(c, toAddress);
+			const { r2Domain } = await settingService.query(c);
+
+			const receiveParams = {
+				toEmail: toAddress,
+				toName: emailUtils.getName(toAddress),
+				sendEmail: data.from,
+				name: emailUtils.getName(data.from),
+				subject: data.subject,
+				content: data.html,
+				text: data.text,
+				recipient: JSON.stringify(data.to.map(addr => ({ address: addr, name: '' }))),
+				resendEmailId: data.email_id,
+				userId: account ? account.userId : 0,
+				accountId: account ? account.accountId : 0,
+				isDel: isDel.DELETE,
+				status: emailConst.status.SAVING,
+				type: emailConst.type.RECEIVE
+			};
+
+			let emailRow = await emailService.receive(c, receiveParams, [], r2Domain);
+			await emailService.completeReceive(c, account ? emailConst.status.RECEIVE : emailConst.status.NOONE, emailRow.emailId);
+			return;
 		}
 
 		const emailRow = await emailService.updateEmailStatus(c, params)
