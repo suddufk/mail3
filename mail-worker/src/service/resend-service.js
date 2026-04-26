@@ -112,10 +112,15 @@ const resendService = {
 								}
 							}
 						} else {
-							console.error('Resend API error:', await res.text());
+							const errorText = await res.text();
+							htmlContent = `<div style="padding: 10px; border: 1px solid red; color: red;"><strong>System Error:</strong> Resend API returned ${res.status} - ${errorText}</div>`;
+							console.error('Resend API error:', errorText);
 						}
+					} else {
+						htmlContent = `<div style="padding: 10px; border: 1px solid orange; color: orange;"><strong>System Warning:</strong> Could not fetch email body because no Resend API Token was found for domain '${domain}' in the Admin settings.</div>`;
 					}
 				} catch (e) {
+					htmlContent = `<div style="padding: 10px; border: 1px solid red; color: red;"><strong>System Exception:</strong> ${e.message}</div>`;
 					console.error('Failed to fetch email detail from Resend API:', e);
 				}
 			}
