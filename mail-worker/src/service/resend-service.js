@@ -63,17 +63,32 @@ const resendService = {
 			const account = await accountService.selectByEmailIncludeDel(c, toAddress);
 			const { r2Domain, resendTokens } = await settingService.query(c);
 
-			// If body is missing, try to fetch it from Resend API (Receiving API)
+			// If body is missing, try to fetch it from Resend API
 			if (!htmlContent && !textContent && emailId) {
 				try {
 					const domain = emailUtils.getDomain(toAddress);
 					const resendToken = resendTokens[domain];
 					if (resendToken) {
-						const resend = new Resend(resendToken);
-						const { data: emailDetail, error } = await resend.emails.receiving.get(emailId);
-						if (emailDetail) {
+						let res = await fetch(`https://api.resend.com/emails/receiving/${emailId}`, {
+							headers: {
+								'Authorization': `Bearer ${resendToken}`
+							}
+						});
+
+						if (res.status === 404) {
+							// Fallback if the endpoint is actually the standard one
+							res = await fetch(`https://api.resend.com/emails/${emailId}`, {
+								headers: {
+									'Authorization': `Bearer ${resendToken}`
+								}
+							});
+						}
+						
+						if (res.ok) {
+							const emailDetail = await res.json();
 							htmlContent = emailDetail.html || '';
 							textContent = emailDetail.text || '';
+							
 							// If attachments weren't in webhook, they might be here
 							if ((!attachments || attachments.length === 0) && emailDetail.attachments && emailDetail.attachments.length > 0) {
 								for (let item of emailDetail.attachments) {
@@ -96,12 +111,12 @@ const resendService = {
 									}
 								}
 							}
-						} else if (error) {
-							console.error('Resend Receiving API error:', error);
+						} else {
+							console.error('Resend API error:', await res.text());
 						}
 					}
 				} catch (e) {
-					console.error('Failed to fetch email detail from Resend Receiving API:', e);
+					console.error('Failed to fetch email detail from Resend API:', e);
 				}
 			}
 
