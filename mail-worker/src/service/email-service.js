@@ -8,6 +8,7 @@ import accountService from './account-service';
 import BizError from '../error/biz-error';
 import emailUtils from '../utils/email-utils';
 import { Resend } from 'resend';
+import { Unosend } from '@unosend/node';
 import attService from './att-service';
 import { parseHTML } from 'linkedom';
 import userService from './user-service';
@@ -163,7 +164,7 @@ const emailService = {
 			attachments //附件
 		} = params;
 
-		const { resendTokens, r2Domain, send, domainList } = await settingService.query(c);
+		const { resendTokens, unosendToken, emailProvider, r2Domain, send, domainList } = await settingService.query(c);
 
 		let { imageDataList, html } = await attService.toImageUrlHtml(c, content);
 
@@ -231,9 +232,14 @@ const emailService = {
 		const domain = emailUtils.getDomain(accountRow.email);
 		const resendToken = resendTokens[domain];
 
-		//如果接收方存在站外邮箱，又没有resend token
-		if (!resendToken && !allInternal) {
-			throw new BizError(t('noResendToken'));
+		//如果接收方存在站外邮箱，检查对应 provider 是否配置
+		if (!allInternal) {
+			if (emailProvider === 'unosend' && !unosendToken) {
+				throw new BizError(t('noUnosendToken'));
+			}
+			if (emailProvider !== 'unosend' && !resendToken) {
+				throw new BizError(t('noResendToken'));
+			}
 		}
 
 		//没有发件人名字自动截取
@@ -258,10 +264,8 @@ const emailService = {
 
 		let resendResult = {};
 
-		//存在站外时邮箱全部由resend发送
+		//存在站外邮箱时，根据 provider 调用对应服务
 		if (!allInternal) {
-
-			const resend = new Resend(resendToken);
 
 			const sendForm = {
 				from: `${name} <${accountRow.email}>`,
@@ -279,7 +283,13 @@ const emailService = {
 				};
 			}
 
-			resendResult = await resend.emails.send(sendForm);
+			if (emailProvider === 'unosend') {
+				const unosend = new Unosend(unosendToken);
+				resendResult = await unosend.emails.send(sendForm);
+			} else {
+				const resend = new Resend(resendToken);
+				resendResult = await resend.emails.send(sendForm);
+			}
 
 		}
 

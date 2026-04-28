@@ -177,6 +177,15 @@
                 </div>
               </div>
               <div class="setting-item">
+                <div><span>{{ $t('emailProvider') }}</span></div>
+                <div>
+                  <el-select v-model="emailProviderValue" size="small" style="width: 110px" @change="saveEmailProvider">
+                    <el-option label="Resend" value="resend"/>
+                    <el-option label="Unosend" value="unosend"/>
+                  </el-select>
+                </div>
+              </div>
+              <div class="setting-item" v-if="setting.emailProvider !== 'unosend'">
                 <div><span>{{ $t('resendToken') }}</span></div>
                 <div>
                   <el-button class="opt-button" style="margin-top: 0" @click="openResendList" size="small"
@@ -186,6 +195,15 @@
                   <el-button class="opt-button" style="margin-top: 0" @click="openResendForm" size="small"
                              type="primary">
                     <Icon icon="material-symbols:add-rounded" width="16" height="16"/>
+                  </el-button>
+                </div>
+              </div>
+              <div class="setting-item" v-if="setting.emailProvider === 'unosend'">
+                <div><span>{{ $t('unosendToken') }}</span></div>
+                <div>
+                  <el-button class="opt-button" style="margin-top: 0" @click="openUnosendTokenForm" size="small"
+                             type="primary">
+                    <Icon icon="lsicon:edit-outline" width="16" height="16"/>
                   </el-button>
                 </div>
               </div>
@@ -425,6 +443,12 @@
           </el-select>
           <el-input type="text" :placeholder="$t('addResendTokenDesc')" v-model="resendTokenForm.token"/>
           <el-button type="primary" :loading="settingLoading" @click="saveResendToken">{{ $t('save') }}</el-button>
+        </form>
+      </el-dialog>
+      <el-dialog v-model="unosendTokenFormShow" :title="$t('unosendToken')" width="340" @closed="unosendTokenInput = ''">
+        <form>
+          <el-input type="text" :placeholder="$t('addUnosendTokenDesc')" v-model="unosendTokenInput"/>
+          <el-button type="primary" :loading="settingLoading" @click="saveUnosendToken">{{ $t('save') }}</el-button>
         </form>
       </el-dialog>
       <el-dialog v-model="r2DomainShow" :title="$t('addOsDomain')" width="340"
@@ -765,6 +789,8 @@ const accountStore = useAccountStore();
 const userStore = useUserStore();
 const editTitleShow = ref(false)
 const resendTokenFormShow = ref(false)
+const unosendTokenFormShow = ref(false)
+const unosendTokenInput = ref('')
 const r2DomainShow = ref(false)
 const turnstileShow = ref(false)
 const tgSettingShow = ref(false)
@@ -773,6 +799,7 @@ const thirdEmailShow = ref(false)
 const forwardRulesShow = ref(false)
 const emailPrefixShow = ref(false)
 const showResendList = ref(false)
+const emailProviderValue = ref('resend')
 const settingStore = useSettingStore();
 const uiStore = useUiStore();
 const {settings: setting} = storeToRefs(settingStore);
@@ -871,6 +898,7 @@ function getSettings() {
     r2DomainInput.value = setting.value.r2Domain
     addVerifyCount.value = setting.value.addVerifyCount
     regVerifyCount.value = setting.value.regVerifyCount
+    emailProviderValue.value = setting.value.emailProvider || 'resend'
     resetNoticeForm()
     resetAddS3Form()
     resetEmailPrefix()
@@ -1245,6 +1273,19 @@ function openResendForm() {
   resendTokenFormShow.value = true
 }
 
+function openUnosendTokenForm() {
+  unosendTokenInput.value = ''
+  unosendTokenFormShow.value = true
+}
+
+function saveUnosendToken() {
+  editSetting({ unosendToken: unosendTokenInput.value })
+}
+
+function saveEmailProvider() {
+  editSetting({ emailProvider: emailProviderValue.value })
+}
+
 function saveResendToken() {
   const settingForm = {
     resendTokens: {}
@@ -1257,6 +1298,7 @@ function saveResendToken() {
 function backupSetting() {
   const settingForm = {...setting.value}
   delete settingForm.resendTokens
+  delete settingForm.unosendToken
   delete settingForm.siteKey
   delete settingForm.secretKey
   backup = JSON.stringify(setting.value)
@@ -1279,6 +1321,7 @@ function change(e) {
   delete settingForm.s3AccessKey
   delete settingForm.s3SecretKey
   delete settingForm.resendTokens
+  delete settingForm.unosendToken
   editSetting(settingForm, false)
 }
 
@@ -1313,6 +1356,7 @@ function editSetting(settingForm, refreshStatus = true) {
     editTitleShow.value = false
     r2DomainShow.value = false
     resendTokenFormShow.value = false
+    unosendTokenFormShow.value = false
     turnstileShow.value = false
     tgSettingShow.value = false
     thirdEmailShow.value = false

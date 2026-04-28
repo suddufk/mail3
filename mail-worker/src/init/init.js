@@ -28,8 +28,20 @@ const dbInit = {
 		await this.v2_7DB(c);
 		await this.v2_8DB(c);
 		await this.v2_9DB(c);
+		await this.v3_0DB(c);
 		await settingService.refresh(c);
 		return c.text('success');
+	},
+
+	async v3_0DB(c) {
+		try {
+			await c.env.db.batch([
+				c.env.db.prepare(`ALTER TABLE setting ADD COLUMN email_provider TEXT NOT NULL DEFAULT 'resend';`),
+				c.env.db.prepare(`ALTER TABLE setting ADD COLUMN unosend_token TEXT NOT NULL DEFAULT '';`)
+			]);
+		} catch (e) {
+			console.warn(`跳过字段：${e.message}`);
+		}
 	},
 
 	async v2_9DB(c) {

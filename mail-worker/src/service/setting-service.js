@@ -101,6 +101,7 @@ const settingService = {
 
 		settingRow.s3AccessKey = settingRow.s3AccessKey ? `${settingRow.s3AccessKey.slice(0, 12)}******` : null;
 		settingRow.s3SecretKey = settingRow.s3SecretKey ? `${settingRow.s3SecretKey.slice(0, 12)}******` : null;
+		settingRow.unosendToken = settingRow.unosendToken ? `${settingRow.unosendToken.slice(0, 12)}******` : '';
 		settingRow.hasR2 = !!c.env.r2
 
 		let regVerifyOpen = false
