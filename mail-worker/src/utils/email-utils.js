@@ -116,7 +116,7 @@ const emailUtils = {
 		if (typeof email !== 'string') return '';
 		const parts = email.split('@');
 		if (parts.length !== 2) return email;
-		return parts[0] + '@' + this.toPunycode(parts[1]);
+		return this.toPunycode(parts[0]) + '@' + this.toPunycode(parts[1]);
 	},
 
 	fromPunycode(domain) {
