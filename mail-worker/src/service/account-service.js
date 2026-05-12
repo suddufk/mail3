@@ -89,7 +89,8 @@ const accountService = {
 		}
 
 
-		accountRow = await orm(c).insert(account).values({ email: email, userId: userId, name: emailUtils.getName(email) }).returning().get();
+		const punycodeEmail = emailUtils.toPunycodeEmail(email);
+		accountRow = await orm(c).insert(account).values({ email: punycodeEmail, userId: userId, name: emailUtils.getName(punycodeEmail) }).returning().get();
 
 		if (addEmailVerify === settingConst.addEmailVerify.COUNT && !addVerifyOpen) {
 			const row = await verifyRecordService.increaseAddCount(c);
@@ -101,7 +102,8 @@ const accountService = {
 	},
 
 	selectByEmailIncludeDel(c, email) {
-		return orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
+		const punycodeEmail = emailUtils.toPunycodeEmail(email);
+		return orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${punycodeEmail}`).get();
 	},
 
 	list(c, params, userId) {

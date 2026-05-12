@@ -95,9 +95,9 @@ export async function email(message, env, ctx) {
 		const code = await aiService.extractCode({ env }, email, { aiCode, aiCodeFilter });
 
 		const params = {
-			toEmail: message.to,
+			toEmail: emailUtils.toPunycodeEmail(message.to),
 			toName: toName,
-			sendEmail: email.from.address,
+			sendEmail: emailUtils.toPunycodeEmail(email.from.address),
 			name: email.from.name || emailUtils.getName(email.from.address),
 			subject: email.subject,
 			code,
@@ -105,7 +105,7 @@ export async function email(message, env, ctx) {
 			text: email.text,
 			cc: email.cc ? JSON.stringify(email.cc) : '[]',
 			bcc: email.bcc ? JSON.stringify(email.bcc) : '[]',
-			recipient: JSON.stringify(email.to),
+			recipient: JSON.stringify(email.to.map(r => ({ ...r, address: emailUtils.toPunycodeEmail(r.address) }))),
 			inReplyTo: email.inReplyTo,
 			relation: email.references,
 			messageId: email.messageId,

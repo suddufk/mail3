@@ -1,6 +1,9 @@
+import emailUtils from '../utils/email-utils';
+
 const result = {
 	ok(data) {
-		return { code: 200, message: 'success', data: data ? data : null };
+		const convertedData = emailUtils.convertEmailsToUnicode(data);
+		return { code: 200, message: 'success', data: convertedData ? convertedData : null };
 	},
 	fail(message, code = 500) {
 		return { code, message };

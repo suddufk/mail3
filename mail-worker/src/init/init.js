@@ -29,6 +29,7 @@ const dbInit = {
 		await this.v2_8DB(c);
 		await this.v2_9DB(c);
 		await this.v3_0DB(c);
+		await this.v3_1DB(c);
 		await settingService.refresh(c);
 		return c.text('success');
 	},
@@ -54,6 +55,48 @@ const dbInit = {
 			console.warn(`跳过字段：${e.message}`);
 		}
 
+	},
+
+	async v3_1DB(c) {
+		try {
+			const { results: accounts } = await c.env.db.prepare('SELECT account_id, email FROM account').all();
+			for (const row of accounts) {
+				const punycodeEmail = emailUtils.toPunycodeEmail(row.email);
+				if (punycodeEmail !== row.email) {
+					await c.env.db.prepare('UPDATE account SET email = ? WHERE account_id = ?')
+						.bind(punycodeEmail, row.account_id).run();
+				}
+			}
+		} catch (e) {
+			console.warn(`跳过账号迁移：${e.message}`);
+		}
+
+		try {
+			const { results: users } = await c.env.db.prepare('SELECT user_id, email FROM user').all();
+			for (const row of users) {
+				const punycodeEmail = emailUtils.toPunycodeEmail(row.email);
+				if (punycodeEmail !== row.email) {
+					await c.env.db.prepare('UPDATE user SET email = ? WHERE user_id = ?')
+						.bind(punycodeEmail, row.user_id).run();
+				}
+			}
+		} catch (e) {
+			console.warn(`跳过用户迁移：${e.message}`);
+		}
+
+		try {
+			const { results: emails } = await c.env.db.prepare('SELECT email_id, send_email, to_email FROM email').all();
+			for (const row of emails) {
+				const punycodeSend = emailUtils.toPunycodeEmail(row.send_email);
+				const punycodeTo = emailUtils.toPunycodeEmail(row.to_email);
+				if (punycodeSend !== row.send_email || punycodeTo !== row.to_email) {
+					await c.env.db.prepare('UPDATE email SET send_email = ?, to_email = ? WHERE email_id = ?')
+						.bind(punycodeSend, punycodeTo, row.email_id).run();
+				}
+			}
+		} catch (e) {
+			console.warn(`跳过邮件迁移：${e.message}`);
+		}
 	},
 
 	async v2_9DB(c) {

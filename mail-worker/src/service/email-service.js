@@ -164,6 +164,8 @@ const emailService = {
 			attachments = [] //附件
 		} = params;
 
+		receiveEmail = receiveEmail.map(e => emailUtils.toPunycodeEmail(e));
+
 		const { resendTokens, r2Domain, send, punycodeDomainList } = await settingService.query(c);
 
 		let { imageDataList, html } = await attService.toImageUrlHtml(c, content);

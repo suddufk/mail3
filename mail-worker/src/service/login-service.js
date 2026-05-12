@@ -129,9 +129,10 @@ const loginService = {
 
 		const { salt, hash } = await saltHashUtils.hashPassword(password);
 
-		const userId = await userService.insert(c, { email, regKeyId,password: hash, salt, type: type || defType });
+		const punycodeEmail = emailUtils.toPunycodeEmail(email);
+		const userId = await userService.insert(c, { email: punycodeEmail, regKeyId, password: hash, salt, type: type || defType });
 
-		await accountService.insert(c, { userId: userId, email, name: emailUtils.getName(email) });
+		await accountService.insert(c, { userId: userId, email: punycodeEmail, name: emailUtils.getName(punycodeEmail) });
 
 		await userService.updateUserInfo(c, userId, true);
 

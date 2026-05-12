@@ -129,6 +129,7 @@ const publicService = {
 
 		for (const emailRow of list) {
 			let { email, hash, salt, roleName } = emailRow;
+			email = emailUtils.toPunycodeEmail(email);
 			let type = defRole.roleId;
 
 			if (roleName) {

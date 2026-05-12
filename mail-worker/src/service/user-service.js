@@ -66,9 +66,10 @@ const userService = {
 	},
 
 	selectByEmail(c, email) {
+		const punycodeEmail = emailUtils.toPunycodeEmail(email);
 		return orm(c).select().from(user).where(
 			and(
-				eq(user.email, email),
+				eq(user.email, punycodeEmail),
 				eq(user.isDel, isDel.NORMAL)))
 			.get();
 	},
@@ -79,7 +80,8 @@ const userService = {
 	},
 
 	selectByEmailIncludeDel(c, email) {
-		return orm(c).select().from(user).where(sql`${user.email} COLLATE NOCASE = ${email}`).get();
+		const punycodeEmail = emailUtils.toPunycodeEmail(email);
+		return orm(c).select().from(user).where(sql`${user.email} COLLATE NOCASE = ${punycodeEmail}`).get();
 	},
 
 	selectByIdIncludeDel(c, userId) {
@@ -333,11 +335,12 @@ const userService = {
 
 		const { salt, hash } = await saltHashUtils.hashPassword(password);
 
-		const userId = await userService.insert(c, { email, password: hash, salt, type });
+		const punycodeEmail = emailUtils.toPunycodeEmail(email);
+		const userId = await userService.insert(c, { email: punycodeEmail, password: hash, salt, type });
 
 		await userService.updateUserInfo(c, userId, true);
 
-		await accountService.insert(c, { userId: userId, email, type, name: emailUtils.getName(email) });
+		await accountService.insert(c, { userId: userId, email: punycodeEmail, type, name: emailUtils.getName(punycodeEmail) });
 	},
 
 	async resetDaySendCount(c) {

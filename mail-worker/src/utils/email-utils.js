@@ -1,4 +1,5 @@
 import { parseHTML } from 'linkedom';
+import { domainToUnicode } from 'node:url';
 
 const emailUtils = {
 
@@ -63,6 +64,49 @@ const emailUtils = {
 		const parts = email.split('@');
 		if (parts.length !== 2) return email;
 		return parts[0] + '@' + this.toPunycode(parts[1]);
+	},
+
+	fromPunycode(domain) {
+		if (typeof domain !== 'string') return '';
+		if (!domain.includes('xn--')) return domain;
+		try {
+			return domainToUnicode(domain);
+		} catch {
+			return domain;
+		}
+	},
+
+	fromPunycodeEmail(email) {
+		if (typeof email !== 'string') return '';
+		const parts = email.split('@');
+		if (parts.length !== 2) return email;
+		return parts[0] + '@' + this.fromPunycode(parts[1]);
+	},
+
+	convertEmailsToUnicode(data) {
+		if (Array.isArray(data)) {
+			return data.map(item => this.convertEmailsToUnicode(item));
+		}
+		if (data && typeof data === 'object') {
+			const result = {};
+			for (const key of Object.keys(data)) {
+				const value = data[key];
+				if (['email', 'sendEmail', 'toEmail', 'userEmail', 'send_email', 'to_email', 'from', 'to', 'address'].includes(key) && typeof value === 'string' && value.includes('@')) {
+					result[key] = this.fromPunycodeEmail(value);
+				} else if (key === 'recipient' && typeof value === 'string') {
+					try {
+						const parsed = JSON.parse(value);
+						result[key] = JSON.stringify(this.convertEmailsToUnicode(parsed));
+					} catch {
+						result[key] = value;
+					}
+				} else {
+					result[key] = this.convertEmailsToUnicode(value);
+				}
+			}
+			return result;
+		}
+		return data;
 	}
 };
 
