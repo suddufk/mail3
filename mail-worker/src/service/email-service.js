@@ -164,7 +164,7 @@ const emailService = {
 			attachments = [] //附件
 		} = params;
 
-		const { resendTokens, r2Domain, send, domainList } = await settingService.query(c);
+		const { resendTokens, r2Domain, send, punycodeDomainList } = await settingService.query(c);
 
 		let { imageDataList, html } = await attService.toImageUrlHtml(c, content);
 
@@ -179,7 +179,7 @@ const emailService = {
 		//判断接收方是不是全部为站内邮箱
 		const allInternal = receiveEmail.every(email => {
 			const domain = '@' + emailUtils.getPunycodeDomain(email);
-			return domainList.includes(domain);
+			return punycodeDomainList.includes(domain);
 		});
 
 		if (c.env.admin !== userRow.email) {

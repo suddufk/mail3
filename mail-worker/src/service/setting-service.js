@@ -46,7 +46,8 @@ const settingService = {
 			throw new BizError(t('noDomainVariable'));
 		}
 
-		domainList = domainList.map(item => '@' + emailUtils.toPunycode(item));
+		setting.punycodeDomainList = domainList.map(item => '@' + emailUtils.toPunycode(item));
+		domainList = domainList.map(item => '@' + item);
 		setting.domainList = domainList;
 
 
