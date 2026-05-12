@@ -61,7 +61,8 @@ const loginService = {
 			throw new BizError(t('pwdMinLength'));
 		}
 
-		if (!c.env.domain.includes(emailUtils.getPunycodeDomain(email))) {
+		const punycodeDomains = c.env.domain.map(d => emailUtils.toPunycode(d));
+		if (!punycodeDomains.includes(emailUtils.getPunycodeDomain(email))) {
 			throw new BizError(t('notEmailDomain'));
 		}
 

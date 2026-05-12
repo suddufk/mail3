@@ -104,7 +104,8 @@ const publicService = {
 				throw new BizError(t('notEmail'));
 			}
 
-			if (!c.env.domain.includes(emailUtils.getPunycodeDomain(emailRow.email))) {
+			const punycodeDomains = c.env.domain.map(d => emailUtils.toPunycode(d));
+			if (!punycodeDomains.includes(emailUtils.getPunycodeDomain(emailRow.email))) {
 				throw new BizError(t('notEmailDomain'));
 			}
 

@@ -179,7 +179,7 @@ const emailService = {
 		//判断接收方是不是全部为站内邮箱
 		const allInternal = receiveEmail.every(email => {
 			const domain = '@' + emailUtils.getPunycodeDomain(email);
-			return domainList.some(d => emailUtils.toPunycode(d.slice(1)) === domain);
+			return domainList.includes(domain);
 		});
 
 		if (c.env.admin !== userRow.email) {

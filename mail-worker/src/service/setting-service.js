@@ -45,7 +45,7 @@ const settingService = {
 			throw new BizError(t('noDomainVariable'));
 		}
 
-		domainList = domainList.map(item => '@' + item);
+		domainList = domainList.map(item => '@' + emailUtils.toPunycode(item));
 		setting.domainList = domainList;
 
 
@@ -126,9 +126,13 @@ const settingService = {
 	async set(c, params) {
 		const settingData = await this.query(c);
 		let resendTokens = { ...settingData.resendTokens, ...params.resendTokens };
+		const punycodeTokens = {};
 		Object.keys(resendTokens).forEach(domain => {
-			if (!resendTokens[domain]) delete resendTokens[domain];
+			if (resendTokens[domain]) {
+				punycodeTokens[emailUtils.toPunycode(domain)] = resendTokens[domain];
+			}
 		});
+		resendTokens = punycodeTokens;
 
 		if (Array.isArray(params.emailPrefixFilter)) {
 			params.emailPrefixFilter = params.emailPrefixFilter + '';
