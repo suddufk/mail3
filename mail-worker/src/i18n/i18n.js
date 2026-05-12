@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import zh from './zh.js'
 import en from './en.js'
-import en from './ja.js'
+import ja from './ja.js'
 import app from '../hono/hono';
 
 app.use('*', async (c, next) => {
