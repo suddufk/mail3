@@ -1,0 +1,20 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天北京时间 8:00 自动更新 (需根据utc调整)
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  sync_latest_from_upstream:
+    name: Sync latest commits from upstream repo
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Sync upstream
+      uses: ahmadnassri/action-workflow-sync@v1
+      with:
+        upstream_repository: maillab/cloud-mail
+        upstream_branch: main # 原项目分支
+        target_branch: main # 你的分支
+        github_token: ${{ secrets.GITHUB_TOKEN }}
