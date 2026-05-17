@@ -25,7 +25,7 @@ export default function emailHtmlTemplate(html, domain) {
         		padding: 15px 10px;
             width: 100%;
             height: 100%;
-            overflow: auto; /* 改为 auto 允许滚动 */
+            overflow: auto;
             font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
@@ -46,15 +46,15 @@ export default function emailHtmlTemplate(html, domain) {
             const container = document.getElementById('container');
             const shadowRoot = container.attachShadow({ mode: 'open' });
 
-            // 提取 <body> 的 style 属性
+            // Extract <body> style attribute
             const bodyStyleRegex = /<body[^>]*style="([^"]*)"[^>]*>/i;
             const bodyStyleMatch = html.match(bodyStyleRegex);
             const bodyStyle = bodyStyleMatch ? bodyStyleMatch[1] : '';
 
-            // 移除 <body> 标签
+            // Remove <body> tags
             const cleanedHtml = html.replace(/<\\/?body[^>]*>/gi, '');
 
-            // 渲染内容
+            // Render content
             shadowRoot.innerHTML = \`
                 <style>
                     :host {
@@ -67,7 +67,7 @@ export default function emailHtmlTemplate(html, domain) {
                         line-height: 1.5;
                         color: #13181D;
                         word-break: break-word;
-                        overflow: auto; /* 添加滚动 */
+                        overflow: auto;
                     }
 
                     h1, h2, h3, h4 {
@@ -89,7 +89,7 @@ export default function emailHtmlTemplate(html, domain) {
                         width: fit-content;
                         height: fit-content;
                         min-width: 100%;
-                        \${bodyStyle ? bodyStyle : ''} /* 注入 body 的 style */
+                        \${bodyStyle ? bodyStyle : ''}
                     }
 
                     img:not(table img) {
@@ -102,7 +102,7 @@ export default function emailHtmlTemplate(html, domain) {
                 </div>
             \`;
 
-            // 自动缩放
+            // Auto scale
             autoScale(shadowRoot, container);
         }
 
@@ -126,10 +126,10 @@ export default function emailHtmlTemplate(html, domain) {
             hostElement.style.zoom = scale;
         }
 
-        // 使用示例
+        // Example usage
         const exampleHtml = \`${html}\`;
 
-        // 渲染HTML
+        // Render HTML
         renderHTML(exampleHtml);
     </script>
 </body>

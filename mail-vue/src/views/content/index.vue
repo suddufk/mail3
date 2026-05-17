@@ -409,8 +409,8 @@ const handleDelete = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--message-block-color); /* 半透明黑色蒙层 */
-  pointer-events: none; /* 不影响点击 */
+  background: var(--message-block-color);
+  pointer-events: none;
 }
 
 .email-text {

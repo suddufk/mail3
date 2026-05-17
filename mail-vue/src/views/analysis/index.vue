@@ -88,8 +88,8 @@
             <span>{{ $t('emailSource') }}</span>
             <span class="source-button" v-if="false">
               <el-radio-group v-model="checkedSourceType">
-                <el-radio-button label="发件人" value="sender"/>
-                <el-radio-button label="邮箱" value="email"/>
+                <el-radio-button label="Sender" value="sender"/>
+                <el-radio-button label="Email" value="email"/>
               </el-radio-group>
             </span>
           </div>
@@ -361,10 +361,10 @@ function createSenderPie() {
         },
         label: {
           show: false,
-          position: 'outside', // 标签显示在外部
-          formatter: '{d}%',  // 显示名称和占比
+          position: 'outside',
+          formatter: '{d}%',
           color: '#333',
-          fontSize: 14  // 设置字体大小
+          fontSize: 14
         },
         emphasis: {
           label: {
@@ -376,7 +376,7 @@ function createSenderPie() {
         labelLine: {
           show: true
         },
-        color: ['#3CB2FF', '#13DEB9', '#FBBF24', '#FF7F50', '#BAE6FD', '#C084FC'] // 添加符合主题的配色
+        color: ['#3CB2FF', '#13DEB9', '#FBBF24', '#FF7F50', '#BAE6FD', '#C084FC']
       }
     ]
   }
@@ -393,14 +393,14 @@ function createIncreaseLine() {
 
   let option = {
     tooltip: {
-      trigger: 'axis', // 设置触发方式为 'axis'，在坐标轴上显示信息
+      trigger: 'axis',
       axisPointer: {
-        type: 'cross', // 指示器的类型为交叉型，适用于折线图等
+        type: 'cross',
         crossStyle: {
-          color: topic.value.crossColor// 设置指示器线的颜色
+          color: topic.value.crossColor
         },
         lineStyle: {
-          color: topic.value.crossColor         // ← 竖线颜色
+          color: topic.value.crossColor
         },
         axis: 'x',
       },
@@ -411,12 +411,12 @@ function createIncreaseLine() {
         });
         return result;
       },
-      backgroundColor: topic.value.background,  // 设置背景颜色
-      borderColor: topic.value.splitLineColor,      // 设置边框颜色
-      borderWidth: 1,           // 设置边框宽度
-      padding: 10,              // 设置内边距
+      backgroundColor: topic.value.background,
+      borderColor: topic.value.splitLineColor,
+      borderWidth: 1,
+      padding: 10,
       textStyle: {
-        color: topic.value.color,          // 设置文字颜色
+        color: topic.value.color,
       }
     },
     grid: {
@@ -430,7 +430,7 @@ function createIncreaseLine() {
       data: userLineData.xdata,
       axisTick: {
         show: false,
-        alignWithLabel: false,  // 刻度线与标签对齐,
+        alignWithLabel: false,
         lineStyle: {
           color: topic.value.axisColor,
         }
@@ -464,7 +464,7 @@ function createIncreaseLine() {
     yAxis: {
       type: 'value',
       axisLabel: {
-        margin: 5, // 增加y轴刻度数字与网格线之间的间距
+        margin: 5,
       },
       boundaryGap: [0, 0.1],
       max: (params) => {
@@ -488,10 +488,10 @@ function createIncreaseLine() {
         }
       },
       splitLine: {
-        show: true, // 显示网格线
+        show: true,
         lineStyle: {
-          type: 'dashed', // 设置网格线为虚线
-          color: topic.value.scaleLineColor   // 设置虚线的颜色
+          type: 'dashed',
+          color: topic.value.scaleLineColor
         }
       }
     },
@@ -563,7 +563,7 @@ function createEmailColumnChart() {
       data: [t('emailReceived'), t('emailSent')],
       top: '0',
       textStyle: {
-        color: topic.value.color,  // 图例文字颜色
+        color: topic.value.color,
       }
     },
     grid: {
@@ -596,8 +596,8 @@ function createEmailColumnChart() {
       splitLine: {
         show: true,
         lineStyle: {
-          color: topic.value.splitLineColor,  // ← 横线颜色
-          type: 'solid',    // dashed=虚线，solid=实线
+          color: topic.value.splitLineColor,
+          type: 'solid',
           width: 1
         }
       },
@@ -615,7 +615,7 @@ function createEmailColumnChart() {
       {
         name: t('emailReceived'),
         type: 'bar',
-        stack: 'total', // 堆叠组标识（必须相同）
+        stack: 'total',
         barWidth: '60%',
         barMaxWidth: 30,
         emphasis: {
@@ -632,7 +632,7 @@ function createEmailColumnChart() {
       {
         name: t('emailSent'),
         type: 'bar',
-        stack: 'total', // 堆叠组标识（必须相同）
+        stack: 'total',
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
@@ -666,7 +666,7 @@ function createSendGauge() {
       name: t('sentToday'),
       type: 'gauge',
       max: 100,
-      // 进度条颜色（新增）
+      // Progress bar color
       progress: {
         show: true,
         roundCap: true,
@@ -674,7 +674,7 @@ function createSendGauge() {
           color: '#3CB2FF'
         }
       },
-      // 指针颜色（新增）
+      // Pointer color
       pointer: {
         itemStyle: {
           color: '#3CB2FF'
@@ -683,7 +683,7 @@ function createSendGauge() {
       axisLabel: {
         color: topic.value.gaugeSplitLine,
       },
-      // 轴线背景色（新增）
+      // Axis background color
       axisLine: {
         roundCap: true,
         lineStyle: {
@@ -692,27 +692,27 @@ function createSendGauge() {
       },
       splitLine: {
         lineStyle: {
-          color: topic.value.gaugeSplitLine, // 大刻度线颜色
+          color: topic.value.gaugeSplitLine,
         }
       },
-      // 刻度颜色（新增）
+      // Scale tick color
       axisTick: {
         lineStyle: {
           color: topic.value.axisColor
         }
       },
-      // 中心文字颜色（新增）
+      // Center text color
       detail: {
         valueAnimation: true,
         formatter: '{value}',
-        color: topic.value.color // 黑色文字
+        color: topic.value.color
       },
       data: [{
         value: daySendTotal,
         name: t('total'),
-        // 名称标签颜色（新增）
+        // Name label color
         title: {
-          color: topic.value.color  // 灰色标签
+          color: topic.value.color
         }
       }]
     }],

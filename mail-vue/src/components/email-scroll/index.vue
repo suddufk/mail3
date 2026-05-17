@@ -409,7 +409,7 @@ watch(scrollbarRef, () => {
   updateHasScrollbar();
 })
 
-// 强制刷新 (itemHeight 更改后虚拟滚动列表不会自己更新)
+// Force refresh (virtual scroll list won't update on its own after itemHeight changes)
 watch(itemHeight, () => {
   keyCount.value ++
 })
@@ -439,7 +439,7 @@ watch(noLoading, (isNoLoading) => {
 })
 
 
-// 监听是否到达底部
+// Listen for reaching the bottom
 watch(() => arrivedState.bottom, (isBottom) => {
   if (isBottom && !loading.value) {
     loadData();
@@ -577,8 +577,8 @@ function htmlToText(email) {
 
 function cleanSpace(text) {
   return text
-      .replace(/[\u200B-\u200F\uFEFF\u034F\u200B-\u200F\u00A0\u3000\u00AD]/g, '')// 移除零宽空格
-      .replace(/\s+/g, ' ')                   // 多空白合并成一个空格
+      .replace(/[\u200B-\u200F\uFEFF\u034F\u200B-\u200F\u00A0\u3000\u00AD]/g, '')// Remove zero-width spaces
+      .replace(/\s+/g, ' ')                   // Collapse multiple spaces into one
       .trim();
 }
 
@@ -774,7 +774,7 @@ function handleCheckAllChange(val) {
   isIndeterminate.value = false;
 }
 
-// 获取选中的邮件列表id
+// Get selected email list IDs
 function getSelectedMailsIds() {
   return emailList.filter(item => item.checked).map(item => item.emailId);
 }
@@ -996,7 +996,7 @@ function loadData() {
   }
 
   @media (pointer: coarse) {
-    /* 触屏 */
+    /* Touch screen */
     user-select: none;
   }
   &.all-email {
