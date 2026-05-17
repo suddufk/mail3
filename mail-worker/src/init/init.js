@@ -40,6 +40,10 @@ const dbInit = {
 		} catch (e) {
 			console.warn(`Skipping field: ${e.message}`);
 		}
+
+		const oldChineseNotice = '本项目仅供学习交流，禁止用于违法业务\n<br>\n请遵守当地法规，作者不承担任何法律责任';
+		const englishNotice = 'This project is for learning and communication only. Use for illegal purposes is prohibited.\n<br>\nPlease comply with local laws. The author assumes no legal responsibility.';
+		await c.env.db.prepare(`UPDATE setting SET notice_content = ? WHERE notice_content = ?;`).bind(englishNotice, oldChineseNotice).run();
 	},
 
 	async v3_0DB(c) {
