@@ -259,6 +259,7 @@ const en = {
     sendBanned: 'Banned',
     sendInternal: 'Only internal',
     wrote: 'wrote',
+    forwardedMessage: 'Forwarded message',
     support: 'Support',
     supportDesc: 'Buy me tea',
     featDesc: 'Feature Description',

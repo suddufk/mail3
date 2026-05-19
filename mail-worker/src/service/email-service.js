@@ -23,6 +23,7 @@ import account from "../entity/account";
 import { att } from '../entity/att';
 import telegramService from './telegram-service';
 import verifyUtils from '../utils/verify-utils';
+import r2Service from './r2-service';
 
 const emailService = {
 
@@ -264,6 +265,8 @@ const emailService = {
 
 		}
 
+		attachments = await this.hydrateForwardAttachments(c, attachments);
+
 		let sendResult = {};
 
 		//存在站外邮箱时，如果配置了 Cloudflare Email Service 就优先使用，否则使用 Resend
@@ -490,6 +493,62 @@ const emailService = {
 
 	toAddressList(emailList = []) {
 		return this.normalizeEmailList(emailList).map(item => ({ address: item, name: '' }));
+	},
+
+	async hydrateForwardAttachments(c, attachments = []) {
+		const result = [];
+
+		for (const attachment of attachments) {
+			if (attachment.content || !attachment.key) {
+				result.push(attachment);
+				continue;
+			}
+
+			const obj = await this.getAttachmentObject(c, attachment.key);
+			if (!obj) {
+				throw new BizError(`Attachment not found: ${attachment.filename || attachment.key}`);
+			}
+
+			const contentType = attachment.contentType || attachment.mimeType || this.getObjectContentType(obj);
+			result.push({
+				...attachment,
+				content: await this.objectToBase64(obj),
+				contentType,
+				mimeType: attachment.mimeType || contentType
+			});
+		}
+
+		return result;
+	},
+
+	getAttachmentObject(c, key) {
+		return r2Service.getObj(c, key);
+	},
+
+	getObjectContentType(obj) {
+		return obj?.httpMetadata?.contentType || obj?.headers?.get?.('Content-Type') || 'application/octet-stream';
+	},
+
+	async objectToBase64(obj) {
+		let content = obj;
+
+		if (content?.arrayBuffer) {
+			content = await content.arrayBuffer();
+		}
+
+		if (content instanceof ArrayBuffer) {
+			content = new Uint8Array(content);
+		}
+
+		if (content instanceof Uint8Array) {
+			let binary = '';
+			for (let i = 0; i < content.length; i += 0x8000) {
+				binary += String.fromCharCode(...content.subarray(i, i + 0x8000));
+			}
+			return btoa(binary);
+		}
+
+		return content;
 	},
 
 	async toCloudflareAttachments(attachments) {

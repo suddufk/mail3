@@ -15,18 +15,18 @@
         </div>
       </div>
       <div class="container">
-        <el-input-tag  @add-tag="addTagChange" tag-type="primary" @input="inputChange" size="default" v-model="form.receiveEmail" >
+        <el-input-tag  @add-tag="val => addTagChange(val, 'receiveEmail')" tag-type="primary" @input="value => inputChange(value, 'receiveEmail')" size="default" v-model="form.receiveEmail" >
           <template #prefix>
             <div class="item-title" >{{ $t('recipient') }}</div>
             <el-select
-                ref="mySelect"
+                ref="receiveSelect"
                 class="write-select"
                 popper-class="write-select"
                 :show-arrow="false"
                 :no-match-text="' '"
                 :no-data-text="' '"
-                @visible-change="selectStatusChange"
-                @change="selectChange"
+                @visible-change="status => selectStatusChange(status, 'receiveEmail')"
+                @change="value => selectChange(value, 'receiveEmail')"
             >
               <el-option
                   v-for="item in selectRecipientList"
@@ -43,9 +43,27 @@
             </div>
           </template>
         </el-input-tag>
-        <el-input-tag @add-tag="val => addTagChange(val, 'ccEmail')" tag-type="info" size="default" v-model="form.ccEmail">
+        <el-input-tag @add-tag="val => addTagChange(val, 'ccEmail')" tag-type="info" @input="value => inputChange(value, 'ccEmail')" size="default" v-model="form.ccEmail">
           <template #prefix>
             <div class="item-title" >{{ $t('cc') }}</div>
+            <el-select
+                ref="ccSelect"
+                class="write-select"
+                popper-class="write-select"
+                :show-arrow="false"
+                :no-match-text="' '"
+                :no-data-text="' '"
+                @visible-change="status => selectStatusChange(status, 'ccEmail')"
+                @change="value => selectChange(value, 'ccEmail')"
+            >
+              <el-option
+                  v-for="item in selectRecipientList"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+                  style="color: #999896;"
+              />
+            </el-select>
           </template>
         </el-input-tag>
         <el-input v-model="form.subject" :placeholder="t('subject')" />
@@ -142,8 +160,10 @@ let sending = false
 const defValue = ref('')
 const contactsTabRef = ref({})
 const showContacts = ref(false)
-const mySelect = ref()
+const receiveSelect = ref()
+const ccSelect = ref()
 let selectStatus = false
+let activeRecipientField = 'receiveEmail'
 const backReply = reactive({
   receiveEmail: [],
   ccEmail: [],
@@ -214,30 +234,34 @@ function clearSelectContact() {
   contactsTabRef.value.clearSelection();
 }
 
-function selectChange(value) {
+function selectChange(value, field = activeRecipientField) {
   if (!hasRecipient(value)) {
-    form.receiveEmail.push(value)
+    form[field].push(value)
   }
 }
 
-function selectStatusChange(status) {
+function selectStatusChange(status, field = activeRecipientField) {
   selectStatus = status
+  if (status) activeRecipientField = field
 }
 
-const openSelect = () => {
-  mySelect.value.toggleMenu()
+const openSelect = (field = activeRecipientField) => {
+  const selectRef = field === 'ccEmail' ? ccSelect : receiveSelect;
+  selectRef.value?.toggleMenu()
 }
 
-function inputChange(value) {
+function inputChange(value, field = 'receiveEmail') {
+
+  activeRecipientField = field
 
   selectRecipientList.value = writerStore.sendRecipientRecord.filter(item => value && !hasRecipient(item) && item.startsWith(value)).slice(0, 10);
 
   if (!selectStatus && selectRecipientList.value.length > 0) {
-    openSelect()
+    openSelect(field)
   }
 
   if (selectStatus && selectRecipientList.value.length === 0) {
-    openSelect()
+    openSelect(field)
   }
 
 }
@@ -259,7 +283,7 @@ function addTagChange(val, field = 'receiveEmail') {
       has = true
     }
   })
-  if (selectStatus && has) openSelect()
+  if (selectStatus && has) openSelect(field)
 }
 
 function clearContent() {
@@ -456,23 +480,85 @@ function openForward(email) {
 
   form.subject = email.subject
   form.sendType = 'forward'
+  form.attachments = toForwardAttachments(email.attList)
 
   defValue.value = ''
 
   setTimeout(() => {
-    defValue.value = `
-      ${formatImage(email.content) || `<pre style="font-family: inherit;word-break: break-word;white-space: pre-wrap;margin: 0">${email.text}</pre>`}
-    `
+    defValue.value = formatForwardContent(email)
     open()
 
     nextTick(() => {
       backReply.content = editor.value.getContent()
       backReply.subject = form.subject
-      backReply.receiveEmail = form.receiveEmail
+      backReply.receiveEmail = [...form.receiveEmail]
+      backReply.ccEmail = [...form.ccEmail]
       backReply.sendType = form.sendType
     })
 
   });
+}
+
+function formatForwardContent(email) {
+  const to = formatAddressList(email.recipient);
+  const cc = formatAddressList(email.cc);
+  const ccRow = cc ? `<div><strong>${t('cc')}:</strong> ${cc}</div>` : '';
+  const content = formatOriginalEmailContent(email);
+
+  return `
+    <div></div>
+    <div><br></div>
+    <div class="mceNonEditable" style="margin: 0 0 8px;color: #606266;font-size: 13px;">
+      <div>---------- ${t('forwardedMessage')} ----------</div>
+      <div><strong>${t('from')}:</strong> ${formatAddress(email.name, email.sendEmail)}</div>
+      <div><strong>${t('date')}:</strong> ${formatDetailDate(email.createTime)}</div>
+      <div><strong>${t('subject')}:</strong> ${escapeHtml(email.subject || '')}</div>
+      <div><strong>${t('recipient')}:</strong> ${to}</div>
+      ${ccRow}
+    </div>
+    <blockquote class="mceNonEditable" style="margin: 0 0 0 0.8ex;border-left: 1px solid rgb(204,204,204);padding-left: 1ex;">
+      <article>
+        ${content}
+      </article>
+    </blockquote>`
+}
+
+function formatOriginalEmailContent(email) {
+  return formatImage(email.content) || `<pre style="font-family: inherit;word-break: break-word;white-space: pre-wrap;margin: 0">${escapeHtml(email.text || '')}</pre>`;
+}
+
+function formatAddress(name, address) {
+  const safeName = escapeHtml(name || '');
+  const safeAddress = escapeHtml(address || '');
+  return safeName ? `${safeName} &lt;${safeAddress}&gt;` : safeAddress;
+}
+
+function formatAddressList(value) {
+  return parseAddressList(value).map(item => formatAddress(item.name, item.address)).join(', ');
+}
+
+function escapeHtml(value) {
+  return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+}
+
+function toForwardAttachments(attList = []) {
+  return attList
+      .filter(att => att?.key && !att.contentId)
+      .map(att => {
+        const contentType = att.mimeType || att.contentType || 'application/octet-stream';
+        return {
+          key: att.key,
+          filename: att.filename,
+          size: att.size,
+          mimeType: contentType,
+          contentType
+        };
+      });
 }
 
 function openReply(email) {

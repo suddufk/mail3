@@ -259,6 +259,7 @@ const zh = {
     sendBanned: '已禁用',
     sendInternal: '仅站内',
     wrote: '来信',
+    forwardedMessage: '转发邮件',
     support: '捐助',
     supportDesc: '请我喝杯奶茶',
     featDesc: '功能说明',

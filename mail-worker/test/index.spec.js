@@ -50,4 +50,27 @@ describe('email sending', () => {
 		expect(sendForm.cc).toEqual(['c.guzman@medicalgorithmics.com']);
 		expect(result.data.id).toBe('message-id');
 	});
+
+	it('hydrates forwarded attachment content from existing storage keys', async () => {
+		const originalGetAttachmentObject = emailService.getAttachmentObject;
+		emailService.getAttachmentObject = async () => new Response(new TextEncoder().encode('hello'), {
+			headers: {
+				'Content-Type': 'text/plain'
+			}
+		});
+
+		try {
+			const attachments = await emailService.hydrateForwardAttachments({}, [{
+				key: 'attachments/original.txt',
+				filename: 'original.txt',
+				size: 5,
+				mimeType: 'text/plain'
+			}]);
+
+			expect(attachments[0].content).toBe('aGVsbG8=');
+			expect(attachments[0].contentType).toBe('text/plain');
+		} finally {
+			emailService.getAttachmentObject = originalGetAttachmentObject;
+		}
+	});
 });

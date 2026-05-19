@@ -157,7 +157,7 @@ const attService = {
 			attData.key = att.key;
 			attData.size = att.buff.length;
 			attData.filename = att.filename;
-			attData.mimeType = att.type;
+			attData.mimeType = att.contentType || att.mimeType || att.type || 'application/octet-stream';
 			attData.type = attConst.type.ATT;
 			attDataList.push(attData);
 		}
@@ -166,7 +166,7 @@ const attService = {
 
 		for (let att of attList) {
 			await r2Service.putObj(c, att.key, att.buff, {
-				contentType: att.type,
+				contentType: att.contentType || att.mimeType || att.type || 'application/octet-stream',
 				contentDisposition: `attachment;filename=${att.filename}`
 			});
 		}
