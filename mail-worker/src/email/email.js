@@ -11,7 +11,7 @@ import roleService from '../service/role-service';
 import userService from '../service/user-service';
 import telegramService from '../service/telegram-service';
 import aiService from '../service/ai-service';
-import { emailListIncludes, parseEmailList } from '../utils/email-list-utils';
+import { emailListIncludes, normalizeEmailAddress, parseEmailList } from '../utils/email-list-utils';
 
 export async function email(message, env, ctx) {
 
@@ -172,7 +172,7 @@ export async function email(message, env, ctx) {
 
 			await Promise.all(emails.map(async forwardTo => {
 
-				await forwardToEmail({ env }, message, email, attachments, forwardTo, message.to, resendTokens, domainList);
+				await forwardToEmail({ env }, message, emailRow, email, attachments, forwardTo, message.to, resendTokens, domainList);
 
 			}));
 
@@ -184,10 +184,10 @@ export async function email(message, env, ctx) {
 	}
 }
 
-async function forwardToEmail(c, message, email, attachments, forwardTo, fromEmail, resendTokens, domainList) {
+async function forwardToEmail(c, message, emailRow, parsedEmail, attachments, forwardTo, fromEmail, resendTokens, domainList) {
 
 	if (isInternalForwardTarget(domainList, forwardTo)) {
-		console.error(`转发邮箱 ${forwardTo} 跳过：目标域名会回到当前 Worker`);
+		await copyToInternalAccount(c, emailRow, attachments, forwardTo, fromEmail);
 		return;
 	}
 
@@ -202,11 +202,56 @@ async function forwardToEmail(c, message, email, attachments, forwardTo, fromEma
 	}
 
 	try {
-		await sendForwardCopy(c, email, attachments, forwardTo, fromEmail, resendTokens);
+		await sendForwardCopy(c, parsedEmail, attachments, forwardTo, fromEmail, resendTokens);
 	} catch (e) {
 		console.error(`转发邮箱 ${forwardTo} 备用发送失败：`, e);
 	}
 
+}
+
+async function copyToInternalAccount(c, sourceEmail, attachments, forwardTo, originalTo) {
+
+	if (normalizeEmailAddress(forwardTo) === normalizeEmailAddress(originalTo)) {
+		return;
+	}
+
+	const targetAccount = await accountService.selectByEmailIncludeDel(c, forwardTo);
+
+	if (!targetAccount || targetAccount.isDel === isDel.DELETE) {
+		console.error(`站内转发目标 ${forwardTo} 不存在或已删除`);
+		return;
+	}
+
+	const targetUser = await userService.selectByIdIncludeDel(c, targetAccount.userId);
+
+	if (!targetUser || targetUser.isDel === isDel.DELETE) {
+		console.error(`站内转发目标 ${forwardTo} 所属用户不存在或已删除`);
+		return;
+	}
+
+	const emailCopy = {
+		toEmail: targetAccount.email,
+		toName: targetAccount.name || emailUtils.getName(targetAccount.email),
+		sendEmail: sourceEmail.sendEmail,
+		name: sourceEmail.name,
+		subject: sourceEmail.subject,
+		code: sourceEmail.code,
+		content: sourceEmail.content,
+		text: sourceEmail.text,
+		cc: sourceEmail.cc,
+		bcc: sourceEmail.bcc,
+		recipient: sourceEmail.recipient,
+		inReplyTo: sourceEmail.inReplyTo,
+		relation: sourceEmail.relation,
+		messageId: sourceEmail.messageId,
+		userId: targetAccount.userId,
+		accountId: targetAccount.accountId,
+		isDel: isDel.NORMAL,
+		status: emailConst.status.RECEIVE
+	};
+
+	const copiedEmail = await emailService.receive(c, emailCopy, [], '');
+	await attService.copyAtt(c, attachments, targetAccount.userId, targetAccount.accountId, copiedEmail.emailId);
 }
 
 async function sendForwardCopy(c, email, attachments, forwardTo, fromEmail, resendTokens) {

@@ -34,6 +34,23 @@ const attService = {
 		await orm(c).insert(att).values(attachments).run();
 	},
 
+	async copyAtt(c, attachments, userId, accountId, emailId) {
+
+		if (!attachments?.length) return;
+
+		const attDataList = attachments.map(attachment => {
+			const { attId, content, buff, ...attData } = attachment;
+			return {
+				...attData,
+				userId,
+				accountId,
+				emailId
+			};
+		});
+
+		await orm(c).insert(att).values(attDataList).run();
+	},
+
 	list(c, params, userId) {
 		const { emailId } = params;
 
