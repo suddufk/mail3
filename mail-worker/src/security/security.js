@@ -18,7 +18,10 @@ const exclude = [
 	'/public/genToken',
 	'/telegram',
 	'/test',
-	'/oauth'
+	'/oauth',
+	'/agent/auth/token',
+	'/agent/auth/tokens',
+	'/agent/auth/revoke'
 ];
 
 const requirePerms = [
@@ -108,6 +111,24 @@ app.use('*', async (c, next) => {
 		if (publicToken !== userPublicToken) {
 			throw new BizError(t('publicTokenFail'), 401);
 		}
+		return await next();
+	}
+
+	if (path.startsWith('/agent')) {
+
+		const presented = c.req.header(constant.TOKEN_HEADER);
+		if (!presented) {
+			throw new BizError('agent token required', 401);
+		}
+
+		const stored = await c.env.kv.get(KvConst.AGENT_KEYS, { type: 'json' });
+		const tokens = Array.isArray(stored?.tokens) ? stored.tokens : [];
+		const matched = tokens.find(item => item && item.token === presented);
+		if (!matched) {
+			throw new BizError('agent token invalid', 401);
+		}
+
+		c.set('agentToken', { id: matched.id, name: matched.name });
 		return await next();
 	}
 
