@@ -3,17 +3,7 @@ const app = new Hono();
 
 import result from '../model/result';
 import { cors } from 'hono/cors';
-import { VpsKvAdapter } from '../adapter/kv-adapter';
-
 app.use('*', cors());
-
-// Inject VPS KV adapter when Cloudflare KV is not bound
-app.use('*', async (c, next) => {
-  if (!c.env.kv && c.env.vps_kv_url && c.env.vps_kv_secret) {
-    c.env.kv = new VpsKvAdapter(c.env.vps_kv_url, c.env.vps_kv_secret);
-  }
-  await next();
-});
 
 app.onError((err, c) => {
 	if (err.name === 'BizError') {
