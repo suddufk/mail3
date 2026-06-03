@@ -32,6 +32,8 @@
 
 ## 项目简介
 
+本项目 fork 自 [maillab/cloud-mail](https://github.com/maillab/cloud-mail/tree/main)，在保留 Cloudflare Workers、D1、KV、R2、邮件接收/发送、权限管理、系统设置等核心能力的基础上，将原 Vue 前端重构为 `mail-web`：基于 React、HeroUI、Tailwind CSS 和 Vite 的现代前端实现。
+
 只需要一个域名，就可以创建多个不同的邮箱，类似各大邮箱平台，本项目支持部署到 Cloudflare Workers ，降低服务器成本，搭建自己的邮箱服务
 
 ## 项目展示

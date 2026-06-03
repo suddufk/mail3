@@ -30,7 +30,11 @@
 </p>
 
 ## Description
+
+This project is forked from [maillab/cloud-mail](https://github.com/maillab/cloud-mail/tree/main). It keeps the Cloudflare Workers, D1, KV, R2, email receiving/sending, permission management, and system settings capabilities, while rebuilding the original Vue frontend as `mail-web`, a modern React + HeroUI + Tailwind CSS + Vite application.
+
 With only one domain, you can create multiple different email addresses, similar to major email platforms. This project can be deployed on Cloudflare Workers to reduce server costs and build your own email service.
+
 ## Project Showcase
 
 - [Live Demo](https://skymail.ink)<br>
@@ -123,9 +127,189 @@ cloud-mail
 │   │   ├── main.tsx			    # Entry TSX file
 │   │   └── styles.css			# Global styles
 │   ├── package.json			# Project dependencies
-└── └── env.release				# Environment configuration
+└── └── .env.release			# Release environment configuration
 
 ```
+
+## Local Development
+
+### Prerequisites
+
+The project is split into two directories: `mail-web` is the React + HeroUI frontend, and `mail-worker` is the Cloudflare Workers backend. Node.js 20+ and pnpm are recommended.
+
+If pnpm is not installed, enable it with Corepack:
+
+```bash
+corepack enable
+corepack prepare pnpm@latest --activate
+```
+
+Install dependencies for both projects:
+
+```bash
+pnpm --prefix mail-web install
+pnpm --prefix mail-worker install
+```
+
+Copy the private Wrangler config templates, then fill in your own Cloudflare resource IDs, domains, admin email, and `jwt_secret`:
+
+```bash
+cp mail-worker/wrangler-dev.example.toml mail-worker/wrangler-dev.toml
+cp mail-worker/wrangler.example.toml mail-worker/wrangler.toml
+cp mail-worker/wrangler-test.example.toml mail-worker/wrangler-test.toml
+```
+
+`mail-worker/wrangler.toml`, `mail-worker/wrangler-dev.toml`, and `mail-worker/wrangler-test.toml` are local private config files. They are ignored by `.gitignore`, so they can be used locally without being committed.
+
+### Frontend Hot Reload
+
+The frontend development environment reads `mail-web/.env.dev`, which points API requests to `http://127.0.0.1:8787/api` by default. Run the backend and frontend in two terminals:
+
+```bash
+pnpm --prefix mail-worker run dev
+```
+
+```bash
+pnpm --prefix mail-web run dev
+```
+
+Open:
+
+```text
+http://localhost:3001
+```
+
+For the first local Worker startup, initialize the D1 schema. `<jwt_secret>` must match `[vars].jwt_secret` in `mail-worker/wrangler-dev.toml`:
+
+```bash
+curl http://127.0.0.1:8787/init/<jwt_secret>
+```
+
+After it returns `success`, open the frontend login page. The admin account is controlled by `[vars].admin` in `wrangler-dev.toml`.
+
+### Worker Preview With Static Assets
+
+To preview the deployed shape of “Worker + static frontend assets”, build the frontend first. `mail-web/.env.release` outputs the build to `../mail-worker/dist`:
+
+```bash
+pnpm --prefix mail-web run build
+pnpm --prefix mail-worker run dev
+```
+
+Open:
+
+```text
+http://127.0.0.1:8787
+```
+
+In this mode, the frontend and `/api` are served from the same Worker origin, which is closer to the production environment on Cloudflare.
+
+### Common Frontend Commands
+
+```bash
+# Local development, API defaults to 127.0.0.1:8787/api
+pnpm --prefix mail-web run dev
+
+# Use mail-web/.env.remote, API defaults to a remote service
+pnpm --prefix mail-web run remote
+
+# Production build, output defaults to mail-worker/dist
+pnpm --prefix mail-web run build
+
+# Preview the Vite build output
+pnpm --prefix mail-web run preview
+```
+
+## Deploy to Cloudflare
+
+### 1. Log in to Cloudflare
+
+```bash
+pnpm --prefix mail-worker exec wrangler login
+```
+
+### 2. Create Cloudflare Resources
+
+Create D1, KV, and R2 resources as needed. You can change the resource names below. After creation, copy the returned IDs into `mail-worker/wrangler.toml`.
+
+```bash
+pnpm --prefix mail-worker exec wrangler d1 create cloud-mail
+pnpm --prefix mail-worker exec wrangler kv namespace create kv
+pnpm --prefix mail-worker exec wrangler r2 bucket create cloud-mail
+```
+
+If you do not need attachment storage yet, R2 can be skipped. Keep `[ai] binding = "ai"` if you plan to use Workers AI for verification code recognition.
+
+### 3. Configure `mail-worker/wrangler.toml`
+
+`mail-worker/wrangler.toml` should be copied from `mail-worker/wrangler.example.toml` and kept private locally. Do not commit the real config. Before deploying, check at least these fields:
+
+- `name`: Worker name.
+- `[[d1_databases]]`: set `database_name` and `database_id` from Cloudflare D1; keep `binding = "db"`.
+- `[[kv_namespaces]]`: set the KV namespace `id`; keep `binding = "kv"`.
+- `[[r2_buckets]]`: set `bucket_name`; keep `binding = "r2"`.
+- `[vars].domain`: your receiving domains, for example `["example.com"]`.
+- `[vars].admin`: admin email after initialization, for example `admin@example.com`.
+- `[vars].jwt_secret`: secret used by initialization and login signing. Replace it with a long random string.
+- `[assets]`: keep `directory = "./dist"`; frontend assets are built here during deployment.
+
+If you deploy with an API Token, Wrangler may be unable to automatically discover your account. In that case, provide the Cloudflare Account ID in one of these ways:
+
+```bash
+CLOUDFLARE_ACCOUNT_ID=your-account-id pnpm --prefix mail-worker run deploy
+```
+
+Or add it to the top level of the relevant Wrangler config:
+
+```toml
+account_id = "your-account-id"
+```
+
+To bind a custom domain, add a route to `wrangler.toml`:
+
+```toml
+[[routes]]
+pattern = "mail.example.com"
+custom_domain = true
+```
+
+### 4. Deploy
+
+The `[build]` section in `mail-worker/wrangler.toml` automatically builds the frontend:
+
+```toml
+[build]
+command = "pnpm --prefix ../mail-web install && pnpm --prefix ../mail-web run build"
+```
+
+So production deployment only needs:
+
+```bash
+pnpm --prefix mail-worker install
+pnpm --prefix mail-worker run deploy
+```
+
+For the test config, use `deploy:test`. The `test` script is kept as a compatibility alias and also deploys the test environment; it is not a unit test command.
+
+```bash
+pnpm --prefix mail-worker run deploy:test
+```
+
+### 5. Initialize the Database
+
+After the first successful deployment, call the initialization endpoint. `<jwt_secret>` must match `[vars].jwt_secret` in `wrangler.toml`:
+
+```bash
+curl https://your-domain/api/init/<jwt_secret>
+```
+
+A `success` response means the D1 schema, default settings, permissions, and admin account have been initialized.
+
+### 6. Configure Email Receiving
+
+Cloud Mail exposes an `email` handler from the Worker. To receive emails, enable Email Routing for your domain in the Cloudflare dashboard, then route the target address or Catch-all rule to this Worker.
+
+After that, sign in with the admin email from `[vars].admin`, then continue configuring sending, attachments, forwarding, verification code recognition, and other features under “Settings / System Settings”.
 
 ## Sponsor
 

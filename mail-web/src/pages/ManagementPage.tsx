@@ -10,7 +10,7 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { regKeyAdd, regKeyClearNotUse, regKeyDelete, regKeyHistory, regKeyList } from '@/api/reg-key';
 import {
@@ -56,18 +56,45 @@ type DrawerState =
 const config: Record<Resource, any> = {
   users: {
     titleKey: 'allUsers',
-    columns: ['userId', 'email', 'name', 'roleName', 'status', 'createTime'],
+    columns: [
+      'userId',
+      'email',
+      'type',
+      'status',
+      'sendAction',
+      'sendCount',
+      'accountCount',
+      'receiveEmailCount',
+      'sendEmailCount',
+      'delReceiveEmailCount',
+      'delSendEmailCount',
+      'delAccountCount',
+      'regKeyId',
+      'createTime',
+      'activeTime',
+      'createIp',
+      'activeIp',
+      'os',
+      'browser',
+      'device',
+    ],
+    rowKey: 'userId',
     searchKey: 'email',
+    tableMinWidth: 'min-w-[2200px]',
   },
   roles: {
     titleKey: 'permissions',
     columns: ['roleId', 'name', 'description', 'isDefault', 'sendType', 'sendCount', 'accountCount'],
+    rowKey: 'roleId',
     searchKey: 'name',
+    tableMinWidth: 'min-w-[860px]',
   },
   regKeys: {
     titleKey: 'inviteCode',
     columns: ['regKeyId', 'code', 'roleName', 'count', 'expireTime', 'createTime'],
+    rowKey: 'regKeyId',
     searchKey: 'code',
+    tableMinWidth: 'min-w-[860px]',
   },
 };
 
@@ -91,6 +118,16 @@ function splitList(value = '') {
     .filter(Boolean);
 }
 
+function rowId(resource: Resource, row: any, index: number) {
+  return `${resource}:${row?.[config[resource].rowKey] ?? index}`;
+}
+
+function columnTitle(resource: Resource, column: string, t: (key: string) => string) {
+  if (resource === 'regKeys' && column === 'roleName') return t('role');
+  if (resource === 'roles' && column === 'name') return t('roleName');
+  return t(column);
+}
+
 function flattenPermTree(nodes: any[], depth = 0): any[] {
   return nodes.flatMap((node) => [
     { ...node, depth },
@@ -105,6 +142,7 @@ export default function ManagementPage({ resource }: { resource: Resource }) {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
+  const requestSeq = useRef(0);
   const [search, setSearch] = useState('');
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const [permTree, setPermTree] = useState<any[]>([]);
@@ -130,6 +168,10 @@ export default function ManagementPage({ resource }: { resource: Resource }) {
 
   const columns = useMemo(() => cfg.columns, [cfg.columns]);
   const flatPerms = useMemo(() => flattenPermTree(permTree), [permTree]);
+  const roleNameById = useMemo(
+    () => new Map(roleOptions.map((role) => [Number(role.roleId), role.name])),
+    [roleOptions],
+  );
   const displayedRows = useMemo(() => {
     if (resource !== 'roles' || !search.trim()) return rows;
     const keyword = search.trim().toLowerCase();
@@ -137,34 +179,43 @@ export default function ManagementPage({ resource }: { resource: Resource }) {
       [row.name, row.description, row.roleName].some((value) => String(value || '').toLowerCase().includes(keyword)),
     );
   }, [resource, rows, search]);
+  const visibleTotal = resource === 'roles' ? displayedRows.length : total;
 
   async function fetchRows() {
+    const seq = requestSeq.current + 1;
+    requestSeq.current = seq;
     setLoading(true);
     try {
       if (resource === 'users') {
         const data: any = await userList({ email: search, num: 0, size: 50 });
         const roles: any = await roleSelectUse().catch(() => []);
-        setRows(asList(data));
+        if (requestSeq.current !== seq) return;
+        const list = asList(data);
+        setRows(list);
         setRoleOptions(Array.isArray(roles) ? roles : asList(roles));
-        setTotal(data?.total || asList(data).length);
+        setTotal(data?.total || list.length);
       }
       if (resource === 'roles') {
         const [data, tree]: any[] = await Promise.all([roleRoleList(), rolePermTree().catch(() => [])]);
-        setRows(asList(data));
+        if (requestSeq.current !== seq) return;
+        const list = asList(data);
+        setRows(list);
         setPermTree(Array.isArray(tree) ? tree : asList(tree));
-        setTotal(asList(data).length);
+        setTotal(list.length);
       }
       if (resource === 'regKeys') {
         const [data, roles]: any[] = await Promise.all([
           regKeyList({ code: search, num: 0, size: 50 }),
           roleSelectUse().catch(() => []),
         ]);
-        setRows(asList(data));
+        if (requestSeq.current !== seq) return;
+        const list = asList(data);
+        setRows(list);
         setRoleOptions(Array.isArray(roles) ? roles : asList(roles));
-        setTotal(data?.total || asList(data).length);
+        setTotal(data?.total || list.length);
       }
     } finally {
-      setLoading(false);
+      if (requestSeq.current === seq) setLoading(false);
     }
   }
 
@@ -235,7 +286,7 @@ export default function ManagementPage({ resource }: { resource: Resource }) {
     const email = `${userForm.emailPrefix}${userForm.suffix}`;
     if (!isEmail(email)) return notifyError(t('notEmailMsg'));
     if (!userForm.password) return notifyError(t('emptyPwdMsg'));
-    await userAdd({ email, password: userForm.password, roleId: Number(userForm.roleId || 0) });
+    await userAdd({ email, password: userForm.password, type: Number(userForm.roleId || 0) });
     notifySuccess(t('addSuccessMsg'));
     closeDrawer();
     fetchRows();
@@ -245,7 +296,7 @@ export default function ManagementPage({ resource }: { resource: Resource }) {
     if (!drawer || drawer.type !== 'user-edit') return;
     const userId = drawer.row.userId;
     if (userEditForm.password) await userSetPwd({ userId, password: userEditForm.password });
-    if (userEditForm.roleId) await userSetType({ userId, roleId: Number(userEditForm.roleId) });
+    if (userEditForm.roleId) await userSetType({ userId, type: Number(userEditForm.roleId) });
     if (userEditForm.status !== '') await userSetStatus({ userId, status: Number(userEditForm.status) });
     notifySuccess(t('saveSuccessMsg'));
     closeDrawer();
@@ -327,6 +378,17 @@ export default function ManagementPage({ resource }: { resource: Resource }) {
       if (row.isDel === 1) return t('deleted');
       return row.status === 1 ? t('banned') : t('active');
     }
+    if (column === 'type') {
+      const roleId = Number(row.type || row.roleId || 0);
+      return roleNameById.get(roleId) || (roleId ? `${t('role')} #${roleId}` : t('unauthorized'));
+    }
+    if (column === 'sendAction') {
+      const action = row.sendAction || {};
+      if (action.hasPerm === false) return t('sendBanned');
+      const type = action.sendType === 'day' ? t('daily') : t('total');
+      const limit = Number(action.sendCount || 0) > 0 ? action.sendCount : t('unlimited');
+      return `${type} ${limit}`;
+    }
     if (column === 'isDefault' || column === 'defaultRole') return row[column] ? t('enabled') : t('disabled');
     return compact(row[column]);
   }
@@ -373,7 +435,7 @@ export default function ManagementPage({ resource }: { resource: Resource }) {
               {t('clearUnused')}
             </ConfirmButton>
           ) : null}
-          <span className="text-sm text-muted">{total}</span>
+          <span className="text-sm text-muted">{visibleTotal}</span>
         </section>
 
         <section className="surface-card overflow-hidden rounded-2xl">
@@ -384,11 +446,11 @@ export default function ManagementPage({ resource }: { resource: Resource }) {
           ) : (
             <Table>
               <Table.ScrollContainer>
-                <Table.Content aria-label={t(cfg.titleKey)} className="min-w-[860px]">
+                <Table.Content aria-label={t(cfg.titleKey)} className={cfg.tableMinWidth}>
                   <Table.Header>
                     {columns.map((column: string) => (
                       <Table.Column id={column} isRowHeader={column === columns[0]} key={column}>
-                        {column}
+                        {columnTitle(resource, column, t)}
                       </Table.Column>
                     ))}
                     <Table.Column id="actions" className="text-end">
@@ -397,10 +459,10 @@ export default function ManagementPage({ resource }: { resource: Resource }) {
                   </Table.Header>
                   <Table.Body>
                     {displayedRows.map((row, index) => (
-                      <Table.Row id={row.userId || row.roleId || row.regKeyId || index} key={row.userId || row.roleId || row.regKeyId || index}>
+                      <Table.Row id={rowId(resource, row, index)} key={rowId(resource, row, index)}>
                         {columns.map((column: string) => (
                           <Table.Cell className="max-w-[240px]" key={column}>
-                            <span className="block truncate" title={compact(row[column])}>
+                            <span className="block truncate" title={renderValue(row, column)}>
                               {renderValue(row, column)}
                             </span>
                           </Table.Cell>

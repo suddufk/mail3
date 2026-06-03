@@ -1,4 +1,4 @@
-import { Avatar, Button, Tooltip as HeroTooltip } from '@heroui/react';
+import { Avatar, Button, Dropdown, Label, Tooltip as HeroTooltip } from '@heroui/react';
 import {
   Archive,
   BarChart3,
@@ -6,9 +6,9 @@ import {
   Inbox,
   KeyRound,
   LogOut,
-  Mail,
   Menu,
   Moon,
+  MoreHorizontal,
   PenLine,
   Send,
   Settings,
@@ -189,42 +189,50 @@ export default function AppSidebar() {
         </>
       ) : null}
 
-      <div className="mt-auto space-y-3 p-6">
-        <div className="sidebar-footer-actions flex items-center justify-between">
-          <Tooltip content={dark ? 'Light' : 'Dark'}>
-            <button className="icon-button" onClick={() => setDark(!dark)} type="button">
-              {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
-            </button>
-          </Tooltip>
-          <Tooltip content={t('logOut')}>
-            <button className="icon-button" onClick={handleLogout} type="button">
-              <LogOut className="size-5" />
-            </button>
-          </Tooltip>
-          <Tooltip content="Menu">
-            <button
-              className="icon-button sidebar-open-button"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              type="button"
-            >
-              <Menu className="size-5" />
-            </button>
-          </Tooltip>
-        </div>
-        {hasPerm('email:send') ? (
-          sidebarCollapsed ? (
-            <Tooltip content={t('newEmail')}>
-              <button className="icon-button mx-auto" onClick={() => openComposer({ mode: 'new' })} type="button">
+      <div className="sidebar-footer mt-auto p-6">
+        <div className="sidebar-bottom-actions flex items-center gap-2">
+          {hasPerm('email:send') ? (
+            sidebarCollapsed ? (
+              <Tooltip content={t('newEmail')}>
+                <button className="icon-button mx-auto" onClick={() => openComposer({ mode: 'new' })} type="button">
+                  <PenLine className="size-5" />
+                </button>
+              </Tooltip>
+            ) : (
+              <Button className="sidebar-compose-button flex-1" onPress={() => openComposer({ mode: 'new' })}>
                 <PenLine className="size-5" />
-              </button>
-            </Tooltip>
-          ) : (
-            <Button className="w-full" onPress={() => openComposer({ mode: 'new' })}>
-              <PenLine className="size-5" />
-              {t('newEmail')}
+                {t('newEmail')}
+              </Button>
+            )
+          ) : null}
+          <Dropdown>
+            <Button
+              aria-label={t('moreActions')}
+              className="sidebar-more-button shrink-0"
+              isIconOnly
+              variant="secondary"
+            >
+              <MoreHorizontal className="size-5" />
             </Button>
-          )
-        ) : null}
+            <Dropdown.Popover className="min-w-[180px]" placement="top end">
+              <Dropdown.Menu
+                onAction={(key) => {
+                  if (key === 'theme') setDark(!dark);
+                  if (key === 'logout') void handleLogout();
+                }}
+              >
+                <Dropdown.Item id="theme" textValue={dark ? t('lightMode') : t('darkMode')}>
+                  {dark ? <Sun className="size-4 shrink-0 text-muted" /> : <Moon className="size-4 shrink-0 text-muted" />}
+                  <Label>{dark ? t('lightMode') : t('darkMode')}</Label>
+                </Dropdown.Item>
+                <Dropdown.Item id="logout" textValue={t('logOut')} variant="danger">
+                  <LogOut className="size-4 shrink-0 text-danger" />
+                  <Label>{t('logOut')}</Label>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
+          </Dropdown>
+        </div>
       </div>
     </aside>
   );

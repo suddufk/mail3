@@ -270,7 +270,16 @@ const userService = {
 
 	async setType(c, params) {
 
-		const { type, userId } = params;
+		const type = Number(params.type ?? params.roleId);
+		const userId = Number(params.userId);
+
+		if (!userId) {
+			throw new BizError(t('notExistUser'));
+		}
+
+		if (!type) {
+			throw new BizError(t('roleNotExist'));
+		}
 
 		const roleRow = await roleService.selectById(c, type);
 
@@ -304,7 +313,12 @@ const userService = {
 
 	async add(c, params) {
 
-		const { email, type, password } = params;
+		const { email, password } = params;
+		const type = Number(params.type ?? params.roleId);
+
+		if (!type) {
+			throw new BizError(t('roleNotExist'));
+		}
 
 		if (!c.env.domain.includes(emailUtils.getDomain(email))) {
 			throw new BizError(t('notEmailDomain'));
@@ -324,7 +338,7 @@ const userService = {
 			throw new BizError(t('isRegAccount'));
 		}
 
-		const role = roleService.selectById(c, type);
+		const role = await roleService.selectById(c, type);
 
 		if (!role) {
 			throw new BizError(t('roleNotExist'));

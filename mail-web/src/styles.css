@@ -195,6 +195,19 @@ select {
   background: transparent;
 }
 
+.sidebar-bottom-actions {
+  width: 100%;
+}
+
+.sidebar-compose-button {
+  min-width: 0;
+}
+
+.sidebar-more-button {
+  width: 40px;
+  height: 40px;
+}
+
 @media (min-width: 1024px) {
   .mail-shell[data-sidebar-collapsed="true"] {
     grid-template-columns: 76px minmax(340px, 520px) minmax(420px, 1fr);
@@ -238,9 +251,18 @@ select {
     margin-inline: 18px;
   }
 
-  .mail-sidebar[data-collapsed="true"] .sidebar-footer-actions {
+  .mail-sidebar[data-collapsed="true"] .sidebar-footer {
+    padding-inline: 18px;
+  }
+
+  .mail-sidebar[data-collapsed="true"] .sidebar-bottom-actions {
     flex-direction: column;
     gap: 8px;
+  }
+
+  .mail-sidebar[data-collapsed="true"] .sidebar-more-button {
+    width: 36px;
+    height: 36px;
   }
 }
 

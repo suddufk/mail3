@@ -15,6 +15,8 @@ export default function MailPage({
   forceDetail?: boolean;
 }) {
   const selectedEmail = useAppStore((state) => state.selectedEmail.email);
+  const selectedEmailContext = useAppStore((state) => state.selectedEmail);
+  const selectEmail = useAppStore((state) => state.selectEmail);
   const sidebarOpen = useAppStore((state) => state.sidebarOpen);
   const sidebarCollapsed = useAppStore((state) => state.sidebarCollapsed);
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen);
@@ -26,6 +28,11 @@ export default function MailPage({
 
   if (forceDetail && !selectedEmail) {
     return <Navigate replace to="/inbox" />;
+  }
+
+  function closeDetail() {
+    setMobileDetail(false);
+    selectEmail({ ...selectedEmailContext, email: null });
   }
 
   return (
@@ -40,7 +47,7 @@ export default function MailPage({
         <MessageList kind={kind} onOpenDetail={() => setMobileDetail(true)} />
       </div>
       <main className="mail-detail-pane" data-mobile-hidden={!mobileDetail && window.innerWidth < 760}>
-        <MessageDetail email={selectedEmail} onBack={() => setMobileDetail(false)} />
+        <MessageDetail email={selectedEmail} onBack={closeDetail} />
       </main>
       <Composer />
     </div>
