@@ -102,8 +102,8 @@ onBeforeUnmount(() => {
 
 .el-header {
   background: var(--el-bg-color);
-  border-bottom: solid 1px var(--el-border-color);
-  padding: 0 0 0 0;
+  border-bottom: solid 1px var(--el-border-color-lighter);
+  padding: 0;
 }
 
 .overlay-show {
