@@ -8,8 +8,63 @@
       <div class="x5 cloud"></div>
     </div>
     <div v-else :style="background"></div>
+
+    <!-- Left branding panel — desktop only -->
+    <div class="brand-panel">
+      <div class="brand-content">
+        <svg class="brand-compass" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g transform="translate(50,50)">
+            <line x1="0" y1="-42" x2="0" y2="-25" stroke="#e8b520" stroke-width="4" stroke-linecap="round"/>
+            <line x1="0" y1="25" x2="0" y2="42" stroke="#e8b520" stroke-width="4" stroke-linecap="round"/>
+            <line x1="-42" y1="0" x2="-25" y2="0" stroke="#e8b520" stroke-width="4" stroke-linecap="round"/>
+            <line x1="25" y1="0" x2="42" y2="0" stroke="#e8b520" stroke-width="4" stroke-linecap="round"/>
+            <line x1="-21" y1="-21" x2="-12" y2="-12" stroke="#e8b520" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
+            <line x1="12" y1="-12" x2="21" y2="-21" stroke="#e8b520" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
+            <line x1="12" y1="12" x2="21" y2="21" stroke="#e8b520" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
+            <line x1="-21" y1="21" x2="-12" y2="12" stroke="#e8b520" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
+            <circle r="18" stroke="#e8b520" stroke-width="2.5"/>
+            <circle r="13" fill="#c8970a"/>
+            <circle r="5.5" fill="#fff8e1"/>
+          </g>
+        </svg>
+        <div class="brand-org">Panorama Scholarly Group</div>
+        <div class="brand-product">Internal Mail System</div>
+        <div class="brand-rule"></div>
+        <ul class="brand-points">
+          <li>Secure institutional communications</li>
+          <li>Academic workflow support</li>
+          <li>Transparent publication processes</li>
+        </ul>
+      </div>
+    </div>
+
     <div class="form-wrapper">
       <div class="container">
+        <div class="form-badge">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="40" height="40" rx="10" fill="url(#bdg)"/>
+            <defs>
+              <linearGradient id="bdg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#c8970a"/>
+                <stop offset="55%" stop-color="#e8b520"/>
+                <stop offset="100%" stop-color="#c8970a"/>
+              </linearGradient>
+            </defs>
+            <g transform="translate(20,20)">
+              <line x1="0" y1="-11" x2="0" y2="-6.5" stroke="#0c1c3a" stroke-width="2" stroke-linecap="round"/>
+              <line x1="0" y1="6.5" x2="0" y2="11" stroke="#0c1c3a" stroke-width="2" stroke-linecap="round"/>
+              <line x1="-11" y1="0" x2="-6.5" y2="0" stroke="#0c1c3a" stroke-width="2" stroke-linecap="round"/>
+              <line x1="6.5" y1="0" x2="11" y2="0" stroke="#0c1c3a" stroke-width="2" stroke-linecap="round"/>
+              <line x1="-5.5" y1="-5.5" x2="-3" y2="-3" stroke="#0c1c3a" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+              <line x1="3" y1="-3" x2="5.5" y2="-5.5" stroke="#0c1c3a" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+              <line x1="3" y1="3" x2="5.5" y2="5.5" stroke="#0c1c3a" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+              <line x1="-5.5" y1="5.5" x2="-3" y2="3" stroke="#0c1c3a" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+              <circle r="4.5" stroke="#0c1c3a" stroke-width="1.3"/>
+              <circle r="3" fill="#0c1c3a"/>
+              <circle r="1.3" fill="#e8b520"/>
+            </g>
+          </svg>
+        </div>
         <span class="form-title">{{ settingStore.settings.title }}</span>
         <span class="form-desc" v-if="show === 'login'">{{ $t('loginTitle') }}</span>
         <span class="form-desc" v-else>{{ $t('regTitle') }}</span>
@@ -618,6 +673,8 @@ function submitRegister() {
 
 .container {
   background: v-bind(loginOpacity);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   padding-left: 40px;
   padding-right: 40px;
   display: flex;
@@ -625,38 +682,43 @@ function submitRegister() {
   justify-content: center;
   width: 450px;
   height: 100%;
-  border-left: 1px solid var(--login-border);
-  box-shadow: var(--el-box-shadow-light);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.35);
   @media (max-width: 1024px) {
     padding: 20px 18px;
     width: 384px;
     margin-left: 18px;
   }
   @media (max-width: 767px) {
-    border: 1px solid var(--login-border);
-    padding: 20px 18px;
-    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 32px 24px;
     height: fit-content;
     width: 100%;
     margin-right: 18px;
     margin-left: 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
   }
 
   .btn {
-    height: 36px;
+    height: 38px;
     width: 100%;
-    border-radius: 6px;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
   }
 
   .form-desc {
-    margin-top: 5px;
-    margin-bottom: 18px;
+    margin-top: 6px;
+    margin-bottom: 22px;
     color: var(--form-desc-color);
+    font-size: 14px;
   }
 
   .form-title {
-    font-weight: bold;
-    font-size: 22px !important;
+    font-weight: 800;
+    font-size: 24px !important;
+    letter-spacing: -0.02em;
   }
 
   .switch {
@@ -666,26 +728,27 @@ function submitRegister() {
     span {
       color: var(--login-switch-color);
       cursor: pointer;
+      font-weight: 600;
     }
   }
 
   :deep(.el-input__wrapper) {
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--el-bg-color);
   }
 
   .email-input :deep(.el-input__wrapper) {
-    border-radius: 6px 0 0 6px;
+    border-radius: 8px 0 0 8px;
     background: var(--el-bg-color);
   }
 
   .el-input {
-    height: 38px;
+    height: 40px;
     width: 100%;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
 
     :deep(.el-input__inner) {
-      height: 36px;
+      height: 38px;
     }
   }
 }
@@ -716,19 +779,29 @@ function submitRegister() {
 
 .github {
   position: fixed;
-  width: 35px;
-  height: 35px;
+  width: 36px;
+  height: 36px;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 50%;
-  background: var(--el-bg-color);
-  bottom: 10px;
-  right: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  bottom: 14px;
+  right: 14px;
   z-index: 1000;
-  border: 1px solid var(--el-border-color-light);
-  box-shadow: var(--el-box-shadow-light);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   cursor: pointer;
+  transition: var(--transition-smooth);
+
+  @media (hover: hover) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(200, 151, 10, 0.5);
+    }
+  }
 }
 
 :deep(.el-input-group__append) {
@@ -766,88 +839,208 @@ function submitRegister() {
 
 
 #login-box {
-  background: linear-gradient(to bottom, #2980b9, #6dd5fa, #fff);
+  background: linear-gradient(160deg, #060e1e 0%, #0c1c3a 35%, #0a1a36 65%, #060e1e 100%);
   font: 100% Arial, sans-serif;
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow: hidden;
   display: grid;
   grid-template-columns: 1fr;
+  position: relative;
 }
-
 
 #background-wrap {
-  height: 100%;
+  position: fixed;
+  inset: 0;
   z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-@keyframes animateCloud {
-  0% {
-    margin-left: -500px;
-  }
-
-  100% {
-    margin-left: 100%;
-  }
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0); }
+  25%       { transform: translate(4%, -5%); }
+  50%       { transform: translate(-3%, 6%); }
+  75%       { transform: translate(-6%, -2%); }
 }
 
-.x1 {
-  animation: animateCloud 30s linear infinite;
-  transform: scale(0.65);
-}
-
-.x2 {
-  animation: animateCloud 15s linear infinite;
-  transform: scale(0.3);
-}
-
-.x3 {
-  animation: animateCloud 25s linear infinite;
-  transform: scale(0.5);
-}
-
-.x4 {
-  animation: animateCloud 13s linear infinite;
-  transform: scale(0.4);
-}
-
-.x5 {
-  animation: animateCloud 20s linear infinite;
-  transform: scale(0.55);
-}
-
+/* Gold & navy floating orbs replacing old clouds */
 .cloud {
-  background: linear-gradient(to bottom, #fff 5%, #f1f1f1 100%);
-  border-radius: 100px;
-  box-shadow: 0 8px 5px rgba(0, 0, 0, 0.1);
-  height: 120px;
-  width: 350px;
-  position: relative;
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: 0.45;
+  background: none;
+  box-shadow: none;
 }
 
 .cloud:after,
 .cloud:before {
-  content: "";
-  position: absolute;
-  background: #fff;
-  z-index: -1;
+  display: none;
 }
 
-.cloud:after {
-  border-radius: 100px;
-  height: 100px;
-  left: 50px;
-  top: -50px;
-  width: 100px;
+.x1 {
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(200, 151, 10, 0.85), transparent 68%);
+  top: -120px;
+  left: -80px;
+  animation: floatOrb 32s ease-in-out infinite;
 }
 
-.cloud:before {
-  border-radius: 200px;
-  height: 180px;
-  width: 180px;
-  right: 50px;
-  top: -90px;
+.x2 {
+  width: 340px;
+  height: 340px;
+  background: radial-gradient(circle, rgba(232, 181, 32, 0.7), transparent 68%);
+  bottom: -80px;
+  left: 8%;
+  animation: floatOrb 22s ease-in-out infinite reverse;
+}
+
+.x3 {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(26, 53, 96, 0.9), transparent 68%);
+  top: 35%;
+  left: 18%;
+  animation: floatOrb 28s ease-in-out infinite;
+  opacity: 0.6;
+}
+
+.x4 {
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(200, 151, 10, 0.6), transparent 68%);
+  top: 55%;
+  right: 28%;
+  animation: floatOrb 19s ease-in-out infinite reverse;
+}
+
+.x5 {
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(42, 76, 138, 0.75), transparent 68%);
+  bottom: 5%;
+  right: -60px;
+  animation: floatOrb 24s ease-in-out infinite;
+  opacity: 0.5;
+}
+
+/* ── Left branding panel ── */
+.brand-panel {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 450px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 1100px) {
+    display: none;
+  }
+}
+
+.brand-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 40px;
+
+  .brand-compass {
+    width: 96px;
+    height: 96px;
+    margin-bottom: 28px;
+    filter: drop-shadow(0 0 28px rgba(232, 181, 32, 0.45));
+  }
+
+  .brand-org {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+
+  .brand-product {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .brand-rule {
+    width: 52px;
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, #c8970a, transparent);
+    margin-bottom: 28px;
+  }
+
+  .brand-points {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    li {
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 13px;
+      letter-spacing: 0.01em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+
+      &::before {
+        content: '';
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #c8970a;
+        flex-shrink: 0;
+      }
+    }
+  }
+}
+
+/* ── Form gold badge ── */
+.form-badge {
+  margin-bottom: 18px;
+
+  svg {
+    width: 50px;
+    height: 50px;
+    display: block;
+    filter: drop-shadow(0 4px 10px rgba(200, 151, 10, 0.4));
+  }
+}
+
+/* ── Gold primary button in login form ── */
+:deep(.el-button--primary) {
+  background: linear-gradient(135deg, #c8970a, #e8b520) !important;
+  border-color: #c8970a !important;
+  color: #0c1c3a !important;
+  font-weight: 700 !important;
+
+  &:hover,
+  &:focus {
+    background: linear-gradient(135deg, #d4a420, #f0c84e) !important;
+    border-color: #d4a420 !important;
+  }
+
+  &.is-loading {
+    opacity: 0.75;
+  }
 }
 
 </style>
