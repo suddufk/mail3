@@ -44,7 +44,7 @@
                  v-if="!item.expand"
                  :key="item.emailId"
                  @contextmenu="handleContextmenu($event, item)"
-                 :style="item.rightChecked ? 'background: #FDF6EC' : ''"
+                 :style="item.rightChecked ? 'background: var(--linear-selected)' : ''"
             >
               <el-checkbox :class=" props.type === 'all-email' ? 'all-email-checkbox' : 'checkbox'"
                            v-model="item.checked" @click.stop></el-checkbox>
@@ -372,13 +372,15 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearInterval(timer)
+  window.removeEventListener('resize', handleResize)
 })
 
 getEmailList()
 
-window.onresize = () => {
+const handleResize = () => {
   isMobile.value = innerWidth < 1367
 }
+window.addEventListener('resize', handleResize)
 
 function onScroll(e) {
   scrollTop = e.target.scrollTop;
@@ -876,14 +878,14 @@ function handleList(list) {
     email.formatCreateTime = fromNow(email.createTime);
     email.test = t('received')
     const statusIconMap = {
-      0: { icon: 'ic:round-mark-email-read', color: '#51C76B', content: t('received') },
-      1: { icon: 'bi:send-arrow-up-fill',  color: '#51C76B', content: t('sent') },
-      2: { icon: 'bi:send-check-fill',     color: '#51C76B', content: t('delivered') },
-      3: { icon: 'bi:send-x-fill',         color: '#F56C6C', content: t('bounced') },
-      8: { icon: 'bi:send-x-fill',         color: '#F56C6C', content: t('bounced') },
-      4: { icon: 'bi:send-exclamation-fill', color: '#FBBD08', content: t('complained') },
-      5: { icon: 'bi:send-arrow-up-fill',  color: '#FBBD08', content: t('delayed') },
-      7: { icon: 'ic:round-mark-email-read', color: '#FBBD08', content: t('noRecipient') },
+      0: { icon: 'ic:round-mark-email-read', color: 'var(--cm-color-success)', content: t('received') },
+      1: { icon: 'bi:send-arrow-up-fill',  color: 'var(--cm-color-success)', content: t('sent') },
+      2: { icon: 'bi:send-check-fill',     color: 'var(--cm-color-success)', content: t('delivered') },
+      3: { icon: 'bi:send-x-fill',         color: 'var(--cm-color-danger)', content: t('bounced') },
+      8: { icon: 'bi:send-x-fill',         color: 'var(--cm-color-danger)', content: t('bounced') },
+      4: { icon: 'bi:send-exclamation-fill', color: 'var(--cm-color-warning)', content: t('complained') },
+      5: { icon: 'bi:send-arrow-up-fill',  color: 'var(--cm-color-warning)', content: t('delayed') },
+      7: { icon: 'ic:round-mark-email-read', color: 'var(--cm-color-warning)', content: t('noRecipient') },
     };
 
     if (email.isDel) {
@@ -983,13 +985,13 @@ function loadData() {
 
 :deep(.email-row) {
   display: flex;
-  padding: 8px 0;
+  padding: 0;
   justify-content: space-between;
-  box-shadow: var(--header-actions-border);
+  border-bottom: 1px solid var(--linear-border-subtle);
   cursor: pointer;
   align-items: center;
   position: relative;
-  transition: background 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition: background 140ms ease, border-color 140ms ease;
   height: 48px;
   @media (max-width: 1366px) {
     height: 83px;
@@ -1043,15 +1045,15 @@ function loadData() {
 
   .checkbox {
     display: flex;
-    padding-left: 15px;
-    padding-right: 20px;
+    padding-left: 14px;
+    padding-right: 14px;
     justify-content: center;
   }
 
   .all-email-checkbox {
     display: flex;
-    padding-left: 15px;
-    padding-right: 20px;
+    padding-left: 14px;
+    padding-right: 14px;
     justify-content: center;
     @media (min-width: 1367px) {
       justify-content: start;
@@ -1071,7 +1073,8 @@ function loadData() {
   .title {
     flex: 1;
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: minmax(150px, 230px) 1fr;
+    min-width: 0;
     @media (max-width: 1366px) {
       padding-right: 15px;
     }
@@ -1084,6 +1087,8 @@ function loadData() {
       color: var(--el-text-color-primary);
       display: grid;
       grid-template-columns: auto 1fr auto;
+      align-items: center;
+      min-width: 0;
 
       .email-status {
         display: flex;
@@ -1099,6 +1104,8 @@ function loadData() {
         display: grid;
         gap: 5px;
         grid-template-columns: auto 1fr;
+        min-width: 0;
+        font-size: 13px;
 
         > span:last-child {
           display: flex;
@@ -1130,6 +1137,7 @@ function loadData() {
       .phone-time {
         font-weight: normal;
         font-size: 12px;
+        color: var(--linear-text-muted);
         @media (min-width: 1367px) {
           display: none;
         }
@@ -1163,6 +1171,7 @@ function loadData() {
     .email-text {
       display: grid;
       grid-template-columns: auto 1fr;
+      min-width: 0;
       @media (max-width: 1366px) {
         grid-template-columns: 1fr;
       }
@@ -1175,17 +1184,21 @@ function loadData() {
         white-space: nowrap;
         min-width: 0;
         @media (min-width: 1367px) {
-          padding-left: 5px;
+          padding-left: 0;
         }
       }
 
       .code-tag {
         flex: 0 0 auto;
         max-width: 170px;
-        height: 20px;
-        line-height: 20px;
-        font-size: 14px;
-        color: var(--el-text-color-primary);
+        height: 19px;
+        line-height: 19px;
+        font-size: 12px;
+        color: var(--linear-accent);
+        background: var(--linear-accent-soft);
+        border: 1px solid color-mix(in srgb, var(--linear-accent), transparent 78%);
+        border-radius: 999px;
+        padding: 0 7px;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -1197,14 +1210,16 @@ function loadData() {
         white-space: nowrap;
         text-overflow: ellipsis;
         min-width: 0;
+        font-size: 13px;
       }
 
       .email-content {
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-        padding-left: 10px;
+        padding-left: 12px;
         color: var(--email-scroll-content-color);
+        font-size: 13px;
         @media (max-width: 1366px) {
           padding-left: 0;
           margin-top: 0;
@@ -1220,7 +1235,9 @@ function loadData() {
     white-space: nowrap;
     display: flex;
     padding-left: 15px;
+    padding-right: 10px;
     align-items: center;
+    color: var(--linear-text-muted);
     @media (max-width: 1366px) {
       display: none;
     }
@@ -1237,9 +1254,9 @@ function loadData() {
     z-index: 0;
   }
 
-  /*&[data-checked="true"] {
-    background-color: #c2dbff;
-  }*/
+  &[data-checked="true"] {
+    background-color: var(--linear-selected);
+  }
 }
 
 
@@ -1249,7 +1266,8 @@ function loadData() {
 
 .pc-star {
   display: flex;
-  width: 40px;
+  width: 32px;
+  color: var(--linear-text-muted);
 }
 
 @media (max-width: 1366px) {
@@ -1279,19 +1297,21 @@ function loadData() {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 15px;
-  padding: 3px 15px;
+  gap: 12px;
+  min-height: 42px;
+  padding: 4px 12px;
   box-shadow: var(--header-actions-border);
+  background: var(--linear-panel);
 
   .header-left {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     position: relative;
-    column-gap: 20px;
+    column-gap: 8px;
     row-gap: 8px;
     padding-left: 2px;
-    color: var(--el-text-color-primary);;
+    color: var(--linear-text-muted);
   }
 
   .header-right {
@@ -1299,7 +1319,8 @@ function loadData() {
     grid-template-columns: auto auto;
     align-items: start;
     height: 100%;
-    color: var(--el-text-color-primary);;
+    color: var(--linear-text-muted);
+    font-size: 12px;
 
     .email-count {
       white-space: nowrap;
@@ -1310,11 +1331,22 @@ function loadData() {
   .icon {
     font-size: 18px;
     cursor: pointer;
+    width: 28px;
+    height: 28px;
+    padding: 5px;
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: color 140ms ease, background 140ms ease;
+  }
+
+  .icon:hover {
+    color: var(--el-text-color-primary);
+    background: var(--linear-hover);
   }
 
   .more-icon {
-    margin-top: 8px;
-    margin-left: 15px;
+    margin-top: 3px;
+    margin-left: 6px;
   }
 }
 
@@ -1348,8 +1380,8 @@ function loadData() {
 }
 
 .unread {
-  height: 6px;
-  width: 6px;
+  height: 7px;
+  width: 7px;
   background: var(--el-color-primary);
   margin-bottom: 2px;
   margin-right: 5px;

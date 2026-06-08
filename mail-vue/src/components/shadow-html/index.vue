@@ -18,6 +18,22 @@ const container = ref(null)
 const contentBox = ref(null)
 let shadowRoot = null
 
+function sanitizeHtml(html) {
+  // 移除危险标签（含闭合标签和自闭合标签）
+  html = html.replace(/<(script|iframe|object|embed|meta|link|base|applet)[^>]*>[\s\S]*?<\/\1>/gi, '');
+  html = html.replace(/<(script|iframe|object|embed|meta|link|base|applet)[^>]*\/?>/gi, '');
+
+  // 移除所有内联事件处理器（onerror, onload, onclick 等）
+  html = html.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '');
+  html = html.replace(/\s+on\w+\s*=\s*[^\s>]*/gi, '');
+
+  // 移除 javascript: 协议
+  html = html.replace(/href\s*=\s*["']\s*javascript:/gi, 'href="#"');
+  html = html.replace(/src\s*=\s*["']\s*javascript:/gi, 'src="#"');
+
+  return html;
+}
+
 function updateContent() {
   if (!shadowRoot) return;
 
@@ -26,8 +42,9 @@ function updateContent() {
   const bodyStyleMatch = props.html.match(bodyStyleRegex);
   const bodyStyle = bodyStyleMatch ? bodyStyleMatch[1] : '';
 
-  // 2. 移除 <body> 标签（保留内容）
-  const cleanedHtml = props.html.replace(/<\/?body[^>]*>/gi, '');
+  // 2. 移除 <body> 标签（保留内容）并消毒 HTML
+  let cleanedHtml = props.html.replace(/<\/?body[^>]*>/gi, '');
+  cleanedHtml = sanitizeHtml(cleanedHtml);
 
   // 3. 将 body 的 style 应用到 .shadow-content
   shadowRoot.innerHTML = `
